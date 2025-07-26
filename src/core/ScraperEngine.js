@@ -361,15 +361,15 @@ class ScraperEngine {
      */
     getZoomLevelsForRadius(radius) {
         const zoomMappings = {
-            2: [16, 15],           // 2km: 2 níveis (muito local)
-            5: [16, 15, 14],           // 5km: 3 níveis (bairro)
-            10: [16, 15, 14, 13],      // 10km: 4 níveis (região)
-            20: [16, 15, 14, 13, 12],      // 20km: 5 níveis (cidade)
-            50: [16, 15, 14, 13, 12, 11],      // 50km: 6 níveis (metrópole)
-            100: [16, 15, 14, 13, 12, 11, 10]       // 100km: 7 níveis (estado)
+            2: [15],           // 2km: 2 níveis (muito local)
+            5: [15, 14],           // 5km: 3 níveis (bairro)
+            10: [15, 14, 13],      // 10km: 4 níveis (região)
+            20: [15, 14, 13, 12],      // 20km: 5 níveis (cidade)
+            50: [15, 14, 13, 12, 11],      // 50km: 6 níveis (metrópole)
+            100: [15, 14, 13, 12, 11, 10]       // 100km: 7 níveis (estado)
         };
         
-        return zoomMappings[radius] || [16, 15, 14, 13]; // Default para 10km
+        return zoomMappings[radius] || [15, 14, 13]; // Default para 10km
     }
 
     /**
