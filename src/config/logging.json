@@ -1,0 +1,43 @@
+{
+  "winston": {
+    "level": "info",
+    "format": {
+      "timestamp": true,
+      "colorize": true,
+      "json": false
+    },
+    "transports": {
+      "console": {
+        "level": "info",
+        "colorize": true,
+        "timestamp": true
+      },
+      "file": {
+        "level": "debug",
+        "filename": "logs/scraper.log",
+        "maxsize": 5242880,
+        "maxFiles": 5,
+        "timestamp": true
+      },
+      "error": {
+        "level": "error", 
+        "filename": "logs/error.log",
+        "maxsize": 5242880,
+        "maxFiles": 3,
+        "timestamp": true
+      }
+    }
+  },
+  "categories": {
+    "browser": "debug",
+    "extraction": "info", 
+    "scrolling": "info",
+    "validation": "warn",
+    "performance": "info"
+  },
+  "logRotation": {
+    "enabled": true,
+    "frequency": "daily",
+    "maxFiles": 7
+  }
+}

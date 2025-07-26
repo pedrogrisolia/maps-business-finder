@@ -132,9 +132,8 @@ sessions/
 
 # Export files
 exports/
-*.json
 *.csv
-
+.kilocode/
 # Browser data
 browser-data/
 user-data-dir/
@@ -156,4 +155,4 @@ out/
 .local/
 dev/
 
-results
+results/

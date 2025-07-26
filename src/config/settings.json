@@ -1,0 +1,57 @@
+{
+  "browser": {
+    "headless": false,
+    "args": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-blink-features=AutomationControlled",
+      "--exclude-switches=enable-automation",
+      "--disable-extensions"
+    ],
+    "defaultViewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "useUserProfile": true,
+    "profilePath": "./chrome-profile"
+  },
+  "navigation": {
+    "baseUrl": "https://www.google.com/maps/search/",
+    "waitUntil": "networkidle2",
+    "timeout": 30000,
+    "stabilityDelay": 5000
+  },
+  "scrolling": {
+    "scrollAmount": 9000,
+    "scrollDelay": 2000,
+    "maxScrollAttempts": 25,
+    "heightCheckInterval": 2,
+    "endDetectionRetries": 3,
+    "aggressiveScrollThreshold": 3
+  },
+  "extraction": {
+    "dataValidationTimeout": 5000,
+    "retryAttempts": 3,
+    "batchSize": 50
+  },
+  "output": {
+    "formats": ["json", "csv"],
+    "outputDir": "./results",
+    "timestampFormat": "YYYY-MM-DD_HH-mm-ss",
+    "includeDuplicates": false
+  },
+  "performance": {
+    "concurrentTabs": 1,
+    "memoryThreshold": 1000,
+    "restartAfterSessions": 10
+  },
+  "language": {
+    "locale": "pt-BR",
+    "endMessages": [
+      "Você chegou ao final da lista",
+      "chegou ao final",
+      "final da lista"
+    ]
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "name": "maps-business-finder",
+  "version": "1.0.0",
+  "description": "Uma ferramenta poderosa para análise de concorrência baseada no Google Maps",
+  "main": "src/web/server.js",
+  "scripts": {
+    "start": "node src/web/server.js",
+    "dev": "nodemon src/web/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.{js,json}\"",
+    "build": "echo 'No build step required for this project'",
+    "clean": "rm -rf node_modules package-lock.json",
+    "install:clean": "npm run clean && npm install",
+    "docker:build": "docker build -t maps-business-finder .",
+    "docker:run": "docker run -p 3000:3000 maps-business-finder"
+  },
+  "keywords": [
+    "google-maps",
+    "business-analysis",
+    "competitor-analysis",
+    "web-scraping",
+    "data-extraction",
+    "market-research",
+    "business-intelligence",
+    "nodejs",
+    "puppeteer",
+    "express",
+    "socket.io"
+  ],
+  "author": {
+    "name": "Maps Business Finder Team",
+    "email": "contato@mapsbusinessfinder.com",
+    "url": "https://github.com/seu-usuario/maps-business-finder"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/maps-business-finder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/maps-business-finder/issues"
+  },
+  "homepage": "https://github.com/seu-usuario/maps-business-finder#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "puppeteer": "^21.6.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1",
+    "moment": "^2.29.4",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^3.1.1",
+    "supertest": "^6.3.3",
+    "cross-env": "^7.0.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/web/server.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "standard",
+    "env": {
+      "node": true,
+      "es2021": true,
+      "jest": true
+    },
+    "rules": {
+      "indent": ["error", 4],
+      "semi": ["error", "always"],
+      "quotes": ["error", "single"],
+      "comma-dangle": ["error", "never"]
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "none",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 4
+  },
+  "files": [
+    "src/",
+    "public/",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "env.example"
+  ],
+  "directories": {
+    "lib": "src",
+    "test": "tests"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
