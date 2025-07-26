@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Business Finder - Análise de Concorrência</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h1>Maps Business Finder</h1>
+                        <span class="subtitle">Análise de Concorrência</span>
+                    </div>
+                    <div class="header-actions">
+                        <button id="importBtn" class="btn btn-outline">
+                            <i class="fas fa-upload"></i>
+                            Importar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Search Section -->
+                <section class="search-section">
+                    <div class="search-card">
+                        <h2>Pesquisar Empresas</h2>
+                        <p class="search-description">
+                            Digite o tipo de negócio que deseja pesquisar no Google Maps para análise de concorrência
+                        </p>
+                        
+                        <form id="searchForm" class="search-form">
+                            <div class="search-input-group">
+                                <div class="search-input-wrapper">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input 
+                                        type="text" 
+                                        id="searchInput" 
+                                        placeholder="Ex: restaurante italiano, farmácia, oficina mecânica..."
+                                        required
+                                        autocomplete="off"
+                                    />
+                                    <button type="submit" class="search-btn" id="searchBtn">
+                                        <span class="btn-text">Pesquisar</span>
+                                        <i class="fas fa-spinner fa-spin btn-loading" style="display: none;"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Raio de Busca -->
+                            <div class="search-radius-group">
+                                <label for="searchRadius">Raio de Busca:</label>
+                                <select id="searchRadius">
+                                    <option value="2">2 km (Busca local)</option>
+                                    <option value="5">5 km (Bairro)</option>
+                                    <option value="10" selected>10 km (Zona)</option>
+                                    <option value="20">20 km (Município)</option>
+                                    <option value="50">50 km (Cidade)</option>
+                                    <option value="100">100 km (Estado)</option>
+                                </select>
+                            </div>
+
+                            <!-- Localização -->
+                            <form id="addressSearchForm" class="address-search-form">
+                                <label for="addressSearchInput">
+                                    <i class="fas fa-map-marker-alt"></i> Localizações (opcional)
+                                </label>
+                                <div class="address-input-wrapper">
+                                    <input type="text" id="addressSearchInput" placeholder="Digite um endereço para buscar empresas próximas..." autocomplete="off" />
+                                    <div class="address-loading" id="addressLoading" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                                <ul id="addressSuggestions" style="list-style:none; margin:0; padding:0; border:1px solid #ccc; max-height:180px; overflow-y:auto; position:absolute; background:#fff; width:100%; z-index:1000; display:none; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></ul>
+                                
+                                <!-- Endereços Selecionados -->
+                                <div class="selected-addresses" id="selectedAddresses" style="display: none;">
+                                    <div class="selected-addresses-header">
+                                        <span class="selected-count" id="selectedAddressCount">0 endereços selecionados</span>
+                                        <button type="button" id="clearAllAddresses" class="btn-clear-all">
+                                            <i class="fas fa-trash"></i>
+                                            Limpar Todos
+                                        </button>
+                                    </div>
+                                    <div class="address-chips" id="addressChips">
+                                        <!-- Chips dos endereços selecionados serão adicionados aqui -->
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Advanced Options -->
+                            <div class="advanced-options" id="advancedOptions">
+                                <button type="button" class="advanced-toggle" id="advancedToggle">
+                                    <i class="fas fa-cog"></i>
+                                    Opções Avançadas
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                
+                                <div class="advanced-content" id="advancedContent">
+                                    <div class="options-grid">
+                                        <div class="option-group">
+                                            <label for="minRating">Avaliação Mínima</label>
+                                            <select id="minRating">
+                                                <option value="">Qualquer avaliação</option>
+                                                <option value="3.0">3.0+ estrelas</option>
+                                                <option value="3.5">3.5+ estrelas</option>
+                                                <option value="4.0">4.0+ estrelas</option>
+                                                <option value="4.5">4.5+ estrelas</option>
+                                            </select>
+                                        </div>
+                                        <div class="option-group">
+                                            <label for="minReviews">Mínimo de Avaliações</label>
+                                            <select id="minReviews">
+                                                <option value="">Qualquer quantidade</option>
+                                                <option value="5">5+ avaliações</option>
+                                                <option value="10">10+ avaliações</option>
+                                                <option value="20">20+ avaliações</option>
+                                                <option value="50">50+ avaliações</option>
+                                            </select>
+                                        </div>
+                                        <div class="option-group">
+                                            <label for="resultLimit">Limitar Resultados</label>
+                                            <select id="resultLimit">
+                                                <option value="">Todos os resultados</option>
+                                                <option value="10">10 primeiros</option>
+                                                <option value="20">20 primeiros</option>
+                                                <option value="50">50 primeiros</option>
+                                            </select>
+                                        </div>
+                                        <div class="option-group">
+                                            <label for="exportFormat">Formato de Exportação</label>
+                                            <select id="exportFormat">
+                                                <option value="json,csv">JSON e CSV</option>
+                                                <option value="json">Apenas JSON</option>
+                                                <option value="csv">Apenas CSV</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Search Suggestions -->
+                        <div class="search-suggestions">
+                            <span class="suggestions-label">Sugestões populares:</span>
+                            <div class="suggestions-list">
+                                <button class="suggestion-chip" data-term="restaurante">restaurante</button>
+                                <button class="suggestion-chip" data-term="farmácia">farmácia</button>
+                                <button class="suggestion-chip" data-term="oficina mecânica">oficina mecânica</button>
+                                <button class="suggestion-chip" data-term="pet shop">pet shop</button>
+                                <button class="suggestion-chip" data-term="açougue">açougue</button>
+                                <button class="suggestion-chip" data-term="padaria">padaria</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Progress Section -->
+                <section class="progress-section" id="progressSection" style="display: none;">
+                    <div class="progress-card">
+                        <div class="progress-header">
+                            <h3 id="progressTitle">Iniciando pesquisa...</h3>
+                            <button id="stopBtn" class="btn btn-danger btn-sm">
+                                <i class="fas fa-stop"></i>
+                                Parar
+                            </button>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <span class="progress-text" id="progressText">0%</span>
+                        </div>
+
+                        <div class="progress-details">
+                            <div class="progress-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Tempo Decorrido:</span>
+                                    <span class="stat-value" id="elapsedTime">0s</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Empresas Encontradas:</span>
+                                    <span class="stat-value" id="businessCount">0</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Fase Atual:</span>
+                                    <span class="stat-value" id="currentStatus">Preparando...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Business Discovery -->
+                        <div class="business-discovery" id="businessDiscovery">
+                            <div class="discovery-header">
+                                <h4><i class="fas fa-store"></i> Empresas Descobertas</h4>
+                                <span class="discovery-count" id="discoveryCount">0 encontradas</span>
+                            </div>
+                            <div class="discovery-grid" id="discoveryGrid">
+                                <!-- Business cards will be added here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <section class="results-section" id="resultsSection" style="display: none;">
+                    <div class="results-header">
+                        <h2 id="resultsTitle">Resultados da Pesquisa</h2>
+                        <div class="results-actions">
+                            <div class="results-summary" id="resultsSummary">
+                                <!-- Summary will be populated here -->
+                            </div>
+                            <div class="results-controls">
+                                <button id="exportResultsBtn" class="btn btn-primary">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="results-filters">
+                        <div class="filter-group">
+                            <div class="search-filter">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="resultsSearch" placeholder="Filtrar por nome da empresa...">
+                            </div>
+                            <div class="tier-filters" id="tierFilters">
+                                <!-- Tier filter buttons will be added here -->
+                            </div>
+                        </div>
+                        <div class="sort-controls">
+                            <label for="sortBy">Ordenar por:</label>
+                            <select id="sortBy">
+                                <option value="compositeScore">Pontuação Composta</option>
+                                <option value="rating">Avaliação</option>
+                                <option value="reviewCount">Número de Avaliações</option>
+                                <option value="name">Nome</option>
+                            </select>
+                            <button id="sortOrder" class="btn-sort" data-order="desc">
+                                <i class="fas fa-sort-amount-down"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="results-table-container">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th class="rank-col">#</th>
+                                    <th class="name-col">Nome da Empresa</th>
+                                    <th class="rating-col">Avaliação</th>
+                                    <th class="reviews-col">Comentários</th>
+                                    <th class="score-col">Pontuação</th>
+                                    <th class="tier-col">Categoria</th>
+                                    <th class="address-col">Endereço</th>
+                                    <th class="indicators-col">Indicadores</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Results Pagination -->
+                    <div class="results-pagination" id="resultsPagination">
+                        <!-- Pagination will be added here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 Maps Business Finder. Ferramenta para análise de concorrência baseada no Google Maps.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Exportar Resultados</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <h4>Escolha o formato de exportação:</h4>
+                    <div class="export-formats">
+                        <label class="format-option">
+                            <input type="radio" name="exportFormat" value="json" checked>
+                            <span class="format-label">
+                                <i class="fas fa-code"></i>
+                                JSON
+                                <small>Dados estruturados para análise técnica</small>
+                            </span>
+                        </label>
+                        <label class="format-option">
+                            <input type="radio" name="exportFormat" value="csv">
+                            <span class="format-label">
+                                <i class="fas fa-table"></i>
+                                CSV
+                                <small>Planilha compatível com Excel</small>
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <h4>Opções de exportação:</h4>
+                    <div class="export-settings">
+                        <label class="setting-option">
+                            <input type="checkbox" id="includeMetadata" checked>
+                            <span>Incluir metadados da pesquisa</span>
+                        </label>
+                        <label class="setting-option">
+                            <input type="checkbox" id="includeScoreBreakdown" checked>
+                            <span>Incluir detalhamento da pontuação</span>
+                        </label>
+                        <label class="setting-option">
+                            <input type="checkbox" id="includeOnlyFiltered">
+                            <span>Exportar apenas resultados filtrados</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelExport" class="btn btn-outline">Cancelar</button>
+                <button id="confirmExport" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Importar Resultados</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-options">
+                    <h4>Selecione um arquivo para importar:</h4>
+                    <div class="file-upload-area">
+                        <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
+                        <div class="upload-zone" id="uploadZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Clique aqui ou arraste um arquivo JSON ou CSV</p>
+                            <small>Formatos suportados: JSON, CSV</small>
+                        </div>
+                    </div>
+                    
+                    <div class="import-preview" id="importPreview" style="display: none;">
+                        <h4>Prévia dos dados:</h4>
+                        <div class="preview-info">
+                            <span id="previewCount">0 empresas encontradas</span>
+                            <span id="previewFormat">Formato: -</span>
+                        </div>
+                        <div class="preview-table-container">
+                            <table class="preview-table" id="previewTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Avaliação</th>
+                                        <th>Comentários</th>
+                                        <th>Endereço</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="previewTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelImport" class="btn btn-outline">Cancelar</button>
+                <button id="confirmImport" class="btn btn-primary" disabled>
+                    <i class="fas fa-upload"></i>
+                    Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
