@@ -1,5 +1,6 @@
 const logger = require('../utils/logger');
 const Validators = require('../utils/validators');
+const { calculateDistance, extractCoordinates } = require('../utils/geoUtils');
 
 class ResultProcessor {
     constructor() {
@@ -31,13 +32,13 @@ class ResultProcessor {
             }
 
             // Step 3: Enrich with composite scores
-            processedResults = await this.enrichWithScores(processedResults);
+            processedResults = await this.enrichWithScores(processedResults, options);
 
             // Step 4: Sort by composite score
             processedResults = await this.sortByCompositeScore(processedResults);
 
             // Step 5: Apply filters if specified
-            if (options.minRating || options.minReviews) {
+            if (options.minRating || options.minReviews || options.radius) {
                 processedResults = await this.applyFilters(processedResults, options);
             }
 
@@ -150,7 +151,7 @@ class ResultProcessor {
     /**
      * Enrich results with composite scores and additional metrics
      */
-    async enrichWithScores(results) {
+    async enrichWithScores(results, options = {}) {
         const enrichedResults = results.map(business => {
             const enriched = { ...business };
 
@@ -165,6 +166,12 @@ class ResultProcessor {
 
             // Add quality indicators
             enriched.qualityIndicators = this.getQualityIndicators(business);
+
+            // Calculate distance if reference coordinates are available
+            if (options.referenceCoordinates && options.referenceCoordinates.length > 0) {
+                // Use first reference coordinate for distance calculation
+                enriched.distance = this.calculateDistanceToReference(business, options.referenceCoordinates[0]);
+            }
 
             return enriched;
         });
@@ -201,7 +208,7 @@ class ResultProcessor {
 
             // Apply new formula: (rating * 2) * log(reviews + 1) - gives more weight to rating
             if (rating > 0) {
-                const score = (Math.pow(rating, 4) * 0.1) * (Math.log(reviewCount * 0.1));
+                const score = (Math.pow(rating, 4) * 0.1) * (Math.log(reviewCount + 1));
                 return Math.round(score * 100) / 100; // Round to 2 decimal places
             }
 
@@ -337,6 +344,16 @@ class ResultProcessor {
             logger.info(`Applied minimum reviews filter (${filters.minReviews}): ${filteredResults.length}/${originalCount} remaining`);
         }
 
+        // Filter by distance radius
+        if (filters.radius && filters.referenceCoordinates) {
+            const beforeRadiusFilter = filteredResults.length;
+            filteredResults = filteredResults.filter(business => {
+                if (!business.distance) return false;
+                return business.distance <= filters.radius;
+            });
+            logger.info(`Applied radius filter (${filters.radius}km): ${filteredResults.length}/${beforeRadiusFilter} remaining`);
+        }
+
         // Filter by tier
         if (filters.minTier) {
             const tierOrder = ['Básico', 'Médio', 'Bom', 'Muito Bom', 'Excelente'];
@@ -408,6 +425,44 @@ class ResultProcessor {
 
         logger.info('Result summary generated', summary);
         return summary;
+    }
+
+    /**
+     * Calculate distance to reference coordinates
+     * @param {Object} business - Business data
+     * @param {Object} referenceCoordinates - {lat, lng}
+     * @returns {number|null} Distance in km or null if no coordinates
+     */
+    calculateDistanceToReference(business, referenceCoordinates) {
+        if (!referenceCoordinates) {
+            return null;
+        }
+
+        // Handle both single coordinate object and array of coordinates
+        const refCoord = Array.isArray(referenceCoordinates)
+            ? referenceCoordinates[0]
+            : referenceCoordinates;
+
+        if (!refCoord || (!refCoord.lat && !refCoord.latitude) ||
+            (!refCoord.lng && !refCoord.lon && !refCoord.longitude)) {
+            return null;
+        }
+
+        const businessCoords = extractCoordinates(business);
+        if (!businessCoords) {
+            return null;
+        }
+
+        // Normalize reference coordinate property names
+        const refLat = refCoord.lat || refCoord.latitude;
+        const refLng = refCoord.lng || refCoord.lon || refCoord.longitude;
+
+        return calculateDistance(
+            businessCoords.lat,
+            businessCoords.lng,
+            refLat,
+            refLng
+        );
     }
 
     /**

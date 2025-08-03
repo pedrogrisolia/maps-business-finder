@@ -222,10 +222,20 @@ class MapBusinessFinderApp {
             searchRadius: parseInt(this.elements.searchRadius.value) || 10
         };
 
-        // Get selected address coordinates if available
+        // Get selected address coordinates
         const selectedAddresses = window.getSelectedAddressCoordinates();
         if (selectedAddresses && selectedAddresses.length > 0) {
+            // Use manual coordinates when addresses are selected
             options.coordinates = selectedAddresses;
+            options.referenceCoordinates = selectedAddresses.map(addr => ({
+                lat: addr.lat,
+                lng: addr.lng
+            }));
+            options.radius = options.searchRadius;
+            options.useAutoLocation = false;
+        } else {
+            // Use automatic location when no addresses are selected
+            options.useAutoLocation = true;
         }
 
         try {
@@ -741,6 +751,12 @@ class MapBusinessFinderApp {
             </td>
             <td class="reviews-col">
                 <span class="review-count">${reviewCount || 0}</span>
+            </td>
+            <td class="distance-col">
+                <span class="distance-value">
+                    ${business.distance !== null && business.distance !== undefined ?
+                        `${business.distance}km` : 'N/A'}
+                </span>
             </td>
             <td class="score-col">
                 <span class="composite-score">${business.compositeScore?.toFixed(2) || '0.00'}</span>

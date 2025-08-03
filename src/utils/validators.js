@@ -203,6 +203,17 @@ class Validators {
             sanitized.address = address;
         }
 
+        // Preserve coordinates if they exist
+        if (business.lat !== undefined && business.lng !== undefined) {
+            if (typeof business.lat === 'number' && typeof business.lng === 'number') {
+                // Validate coordinate ranges
+                if (business.lat >= -90 && business.lat <= 90 && business.lng >= -180 && business.lng <= 180) {
+                    sanitized.lat = business.lat;
+                    sanitized.lng = business.lng;
+                }
+            }
+        }
+
         // Add extraction metadata
         sanitized.extractedAt = new Date().toISOString();
         sanitized.source = 'Google Maps';

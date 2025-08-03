@@ -49,10 +49,29 @@ class ScraperEngine {
 
             // Step 1: Initialize browser
             this.reportProgress('initializing_browser', null, 5);
-            const coordinates = options.coordinates || null;
+            let coordinates = options.coordinates || null;
+            
             const browserResult = await this.browserManager.initialize(coordinates);
             if (!browserResult.success) {
                 throw new Error(`Browser initialization failed: ${browserResult.error}`);
+            }
+            
+            // Step 1.5: Auto-capture coordinates if not provided
+            if (!coordinates && options.useAutoLocation) {
+                this.reportProgress('capturing_auto_coordinates', null, 10);
+                logger.info('No coordinates provided, attempting auto-capture from Google Maps');
+                
+                const autoCoordsResult = await this.browserManager.captureAutoCoordinates();
+                if (autoCoordsResult.success) {
+                    coordinates = [{
+                        lat: autoCoordsResult.coordinates.lat,
+                        lon: autoCoordsResult.coordinates.lng,
+                        address: 'Localização Automática'
+                    }];
+                    logger.info('Auto coordinates captured successfully', coordinates[0]);
+                } else {
+                    logger.warn('Auto coordinates capture failed, proceeding without specific location');
+                }
             }
 
             // Step 2: Multi-location and multi-zoom search strategy
@@ -179,7 +198,14 @@ class ScraperEngine {
                 const uniqueBusinesses = this.removeDuplicates(allBusinesses);
                 logger.info(`Removed duplicates: ${allBusinesses.length} → ${uniqueBusinesses.length} businesses`);
                 
-                const processingResult = await this.resultProcessor.processResults(uniqueBusinesses, options);
+                // Preparar opções de processamento com coordenadas de referência
+                const processingOptions = {
+                    ...options,
+                    referenceCoordinates: coordinates,
+                    radius: options.searchRadius || searchRadius // Usar searchRadius como filtro de distância
+                };
+                
+                const processingResult = await this.resultProcessor.processResults(uniqueBusinesses, processingOptions);
                 
                 // Step 7: Export results
                 this.reportProgress('exporting_results', null, 95);

@@ -52,7 +52,7 @@ class DataExtractor {
      */
     async extractWithNewSelectors(page) {
         try {
-            return await page.evaluate(() => {
+            const results = await page.evaluate(() => {
                 const results = [];
                 
                 // Base selector: Find all business result containers
@@ -135,8 +135,8 @@ class DataExtractor {
                                 .trim();
                             
                             // Check if address is valid
-                            if (address.length < 5 || 
-                                /^\d+$/.test(address) || 
+                            if (address.length < 5 ||
+                                /^\d+$/.test(address) ||
                                 /^\(\d{2}\)\s*\d{4,5}-\d{4}$/.test(address) ||
                                 /^\d{8}$/.test(address) ||
                                 /^[^\w]+$/.test(address)) {
@@ -166,6 +166,16 @@ class DataExtractor {
 
                 console.log(`Extraction completed: ${results.length} businesses with ratings/reviews found`);
                 return results;
+            });
+
+            // Extract coordinates for each business after page evaluation
+            return results.map(business => {
+                const coordinates = this.extractCoordinatesFromUrl(business.link);
+                if (coordinates) {
+                    business.lat = coordinates.lat;
+                    business.lng = coordinates.lng;
+                }
+                return business;
             });
 
         } catch (error) {
@@ -198,12 +208,67 @@ class DataExtractor {
     }
 
     /**
+     * Extract coordinates from Google Maps URL
+     * @param {string} url - Google Maps URL containing coordinates
+     * @returns {Object|null} - {lat: number, lng: number} or null if not found
+     */
+    extractCoordinatesFromUrl(url) {
+        if (!url) return null;
+
+        try {
+            // Multiple regex patterns for different Google Maps URL formats
+            const patterns = [
+                // Format: !3d-22.8348581!4d-43.278732
+                { lat: /!3d(-?\d+\.?\d*)/, lng: /!4d(-?\d+\.?\d*)/ },
+                // Format: 3d-22.8348581,4d-43.278732
+                { lat: /3d(-?\d+\.?\d*)/, lng: /4d(-?\d+\.?\d*)/ },
+                // Format: @-22.8348581,-43.278732,15z
+                { lat: /@(-?\d+\.?\d*),(-?\d+\.?\d*)/, lng: /@(-?\d+\.?\d*),(-?\d+\.?\d*)/ }
+            ];
+
+            for (const pattern of patterns) {
+                const latMatch = url.match(pattern.lat);
+                const lngMatch = url.match(pattern.lng);
+
+                if (latMatch && lngMatch) {
+                    let lat, lng;
+                    
+                    // Handle @ pattern (both coordinates in one match)
+                    if (pattern.lat.source.includes('@')) {
+                        const coordMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                        if (coordMatch) {
+                            lat = parseFloat(coordMatch[1]);
+                            lng = parseFloat(coordMatch[2]);
+                        }
+                    } else {
+                        lat = parseFloat(latMatch[1]);
+                        lng = parseFloat(lngMatch[1]);
+                    }
+
+                    // Validate coordinate ranges
+                    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        return { lat, lng };
+                    }
+                }
+            }
+
+            return null;
+        } catch (error) {
+            logger.extraction('Failed to extract coordinates from URL', 'debug', {
+                url: url.substring(0, 100) + '...',
+                error: error.message
+            });
+            return null;
+        }
+    }
+
+    /**
      * Get extraction statistics
      */
     getStats() {
         return {
             ...this.extractionStats,
-            successRate: this.extractionStats.totalAttempts > 0 
+            successRate: this.extractionStats.totalAttempts > 0
                 ? (this.extractionStats.successfulExtractions / this.extractionStats.totalAttempts * 100).toFixed(2) + '%'
                 : '0%'
         };

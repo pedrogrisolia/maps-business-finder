@@ -201,7 +201,7 @@ class Exporters {
             const reviewCount = business.reviewCount || 0;
 
             if (rating > 0) {
-                return Math.round((Math.pow(rating, 4) * 0.1) * (Math.log(reviewCount * 0.1)) * 100) / 100;
+                return Math.round((Math.pow(rating, 4) * 0.1) * (Math.log(reviewCount + 1)) * 100) / 100;
             }
 
             return 0;

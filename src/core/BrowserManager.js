@@ -451,6 +451,57 @@ class BrowserManager {
     }
 
     /**
+     * Capture current coordinates from Google Maps URL
+     */
+    async captureAutoCoordinates() {
+        try {
+            logger.browser('Starting automatic coordinates capture');
+            
+            // Navigate to Google Maps main page
+            await this.page.goto('https://www.google.com/maps', {
+                waitUntil: 'networkidle2',
+                timeout: 30000
+            });
+            
+            // Wait for page to fully load
+            await this.page.waitForTimeout(5000);
+            
+            // Get current URL and extract coordinates
+            const currentUrl = this.page.url();
+            logger.browser(`Current Maps URL: ${currentUrl}`);
+            
+            // Regex to extract coordinates from URL (@lat,lng,zoom format)
+            const coordsMatch = currentUrl.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*)z/);
+            
+            if (coordsMatch) {
+                const coordinates = {
+                    lat: parseFloat(coordsMatch[1]),
+                    lng: parseFloat(coordsMatch[2])
+                };
+                
+                logger.browser('Auto coordinates captured successfully', 'info', coordinates);
+                return {
+                    success: true,
+                    coordinates
+                };
+            } else {
+                logger.browser('No coordinates found in URL, using default location');
+                return {
+                    success: false,
+                    error: 'Coordinates not found in URL'
+                };
+            }
+            
+        } catch (error) {
+            logger.browser('Auto coordinates capture failed', 'error', { error: error.message });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
      * Get session information
      */
     getSessionInfo() {
