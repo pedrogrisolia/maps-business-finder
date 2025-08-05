@@ -22,6 +22,10 @@
                         <span class="subtitle">Análise de Concorrência</span>
                     </div>
                     <div class="header-actions">
+                        <button id="historyBtn" class="btn btn-outline">
+                            <i class="fas fa-history"></i>
+                            Histórico
+                        </button>
                         <button id="importBtn" class="btn btn-outline">
                             <i class="fas fa-upload"></i>
                             Importar
@@ -297,6 +301,35 @@
         </footer>
     </div>
 
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Histórico de Extrações</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-controls">
+                    <input type="text" id="historySearchInput" placeholder="Filtrar por termo de busca...">
+                    <select id="historyFilterDate">
+                        <option value="all">Todas as datas</option>
+                        <option value="today">Hoje</option>
+                        <option value="last7days">Últimos 7 dias</option>
+                        <option value="last30days">Últimos 30 dias</option>
+                    </select>
+                </div>
+                <div class="history-list-container">
+                    <ul id="historyList" class="history-list">
+                        <!-- History items will be rendered here -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline modal-close">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Export Modal -->
     <div id="exportModal" class="modal">
         <div class="modal-content">
@@ -407,6 +440,8 @@
 
     <!-- Scripts -->
     <script src="/socket.io/socket.io.js"></script>
+    <script src="js/history-storage.js"></script>
+    <script src="js/history-ui.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

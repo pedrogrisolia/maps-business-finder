@@ -7,6 +7,9 @@ class MapBusinessFinderApp {
         this.filteredResults = [];
         this.progressTimer = null;
         this.startTime = null;
+
+        this.historyStorage = null; // Instância de HistoryStorage
+        this.historyUI = null;     // Instância de HistoryUI
         
         // DOM elements
         this.elements = {};
@@ -31,10 +34,15 @@ class MapBusinessFinderApp {
 
     async init() {
         try {
+            this.historyStorage = new HistoryStorage(); // Inicializar HistoryStorage
+            await this.historyStorage.initDB(); // GARANTIR inicialização do IndexedDB antes de qualquer outra operação
+            
+            this.historyUI = new HistoryUI(this.historyStorage); // Inicializar HistoryUI
+
             this.bindDOMElements();
             this.setupEventListeners();
             this.initializeSocket();
-            this.loadSearchHistory();
+            this.loadSearchHistory(); // Agora this.historyStorage.initDB() já foi chamado
             console.log('Maps Business Finder App initialized successfully');
         } catch (error) {
             console.error('Failed to initialize app:', error);
@@ -48,6 +56,9 @@ class MapBusinessFinderApp {
             searchForm: document.getElementById('searchForm'),
             searchInput: document.getElementById('searchInput'),
             searchBtn: document.getElementById('searchBtn'),
+            
+            // Action buttons
+            historyBtn: document.getElementById('historyBtn'), // Adicionar o botão de histórico
             
             // Advanced options
             advancedToggle: document.getElementById('advancedToggle'),
@@ -204,6 +215,57 @@ class MapBusinessFinderApp {
         }
     }
 
+    async handleSessionCompleted(data) {
+        console.log('Session completed:', data);
+        console.log('DEBUG - HistoryStorage instance:', this.historyStorage);
+        console.log('DEBUG - Current session ID:', this.currentSession);
+        console.log('DEBUG - Search input value:', this.elements.searchInput?.value);
+        
+        this.setSearching(false);
+        this.stopProgressTimer();
+        
+        // Update final progress
+        this.elements.progressFill.style.width = '100%';
+        this.elements.progressText.textContent = '100%';
+
+        if (data.result && data.result.success) {
+            this.currentResults = data.result.results.businesses || [];
+            this.showResults(data.result);
+            this.hideProgress();
+
+            // Salvar no IndexedDB via HistoryStorage
+            try {
+                console.log('DEBUG - Tentando salvar no histórico...');
+                
+                if (!this.historyStorage) {
+                    throw new Error('HistoryStorage not initialized');
+                }
+
+                const extractionData = {
+                    id: data.sessionId || this.currentSession || Date.now().toString(),
+                    timestamp: new Date().getTime(),
+                    searchTerm: this.elements.searchInput?.value || data.searchTerm || 'Busca sem termo', // Usar o termo de busca do input do frontend
+                    searchLocation: 'Localização Padrão', // Simular uma localização para fins de teste no frontend
+                    totalResults: this.currentResults.length,
+                    avgRating: data.result.results.summary?.avgRating || null,
+                    results: this.currentResults
+                };
+                
+                console.log('DEBUG - Dados da extração:', extractionData);
+                
+                await this.historyStorage.saveExtraction(extractionData);
+                console.log('DEBUG - Extração salva com sucesso!');
+                this.showSuccess('Resultados salvos no histórico!');
+            } catch (error) {
+                console.error('DEBUG - Erro ao salvar extração no histórico:', error);
+                console.error('DEBUG - Error stack:', error.stack);
+                this.showError('Erro ao salvar resultados no histórico.');
+            }
+        } else {
+            this.showError('Pesquisa concluída mas sem resultados válidos.');
+        }
+    }
+
     async handleSearch(e) {
         e.preventDefault();
         
@@ -237,6 +299,8 @@ class MapBusinessFinderApp {
             // Use automatic location when no addresses are selected
             options.useAutoLocation = true;
         }
+
+        console.log('DEBUG - Sending search term and options to backend:', { searchTerm, options }); // Log the sent data
 
         try {
             this.setSearching(true);
@@ -425,23 +489,6 @@ class MapBusinessFinderApp {
         }
     }
 
-    handleSessionCompleted(data) {
-        console.log('Session completed:', data);
-        this.setSearching(false);
-        this.stopProgressTimer();
-        
-        // Update final progress
-        this.elements.progressFill.style.width = '100%';
-        this.elements.progressText.textContent = '100%';
-        
-        if (data.result && data.result.success) {
-            this.currentResults = data.result.results.businesses || [];
-            this.showResults(data.result);
-            this.hideProgress();
-        } else {
-            this.showError('Pesquisa concluída mas sem resultados válidos.');
-        }
-    }
 
     handleSessionFailed(data) {
         console.error('Session failed:', data);
@@ -1067,6 +1114,9 @@ class MapBusinessFinderApp {
         
         // Enable export button
         this.elements.exportResultsBtn.disabled = false;
+        // Expor a função displayResults para que o HistoryUI possa chamá-la
+        window.app.displayResults = this.displayResults.bind(this);
+        window.app.currentResults = this.currentResults;
     }
 
     // Modal management

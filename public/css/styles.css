@@ -1466,6 +1466,128 @@ body {
     }
 }
 
+/* History Modal Styles */
+.history-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.history-controls input[type="text"],
+.history-controls select {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+    color: var(--gray-700);
+}
+
+.history-list-container {
+    max-height: 40vh;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    background: var(--gray-50);
+}
+
+.history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.history-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    gap: 1rem;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-top: 5px;
+}
+
+.history-item-content {
+    flex: 1;
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.history-item-title {
+    font-weight: 600;
+    color: var(--gray-900);
+    font-size: var(--font-size-lg);
+}
+
+.history-item-date {
+    font-size: var(--font-size-sm);
+    color: var(--gray-500);
+}
+
+.history-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-bottom: 0.75rem;
+}
+
+.history-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.history-item-meta span i {
+    color: var(--primary-color);
+}
+
+.history-item-preview {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-size: var(--font-size-sm);
+    color: var(--gray-700);
+    margin-bottom: 1rem;
+}
+
+.history-item-preview p {
+    margin: 0.25rem 0;
+}
+
+.history-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.history-item-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-xs);
+}
+
+@media (max-width: 480px) {
+    .history-controls input[type="text"],
+    .history-controls select {
+        width: 100%;
+    }
+}
+
 /* Utility Classes */
 .text-center { text-align: center; }
 .text-right { text-align: right; }
