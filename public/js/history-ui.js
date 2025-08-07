@@ -125,26 +125,164 @@ class HistoryUI {
     }
 
     async loadExtractionToMainTable(extractionId) {
-        const extraction = await this.historyStorage.getExtractionById(extractionId);
-        if (extraction) {
-            this.selectedExtractionData = extraction;
-            this.closeHistoryModal();
-            // TODO: Integrar com a função de displayResults (necessário expor no app.js)
-            // if (window.app && typeof window.app.displayResults === 'function') {
-            //     window.app.displayResults(extraction.results, extraction.metadata);
-            // } else {
-            //     alert('Funcionalidade de carregar resultados indisponível no momento.');
-            // }
-            alert('Funcionalidade de carregar resultados históricos será implementada na próxima etapa. Dados da extração: ' + JSON.stringify(extraction.searchTerm));
-        } else {
-            alert('Extração não encontrada.');
+        try {
+            const extraction = await this.historyStorage.getExtractionById(extractionId);
+            if (extraction) {
+                this.selectedExtractionData = extraction;
+                this.closeHistoryModal();
+                
+                // Verificar se o app principal está disponível
+                if (window.app && typeof window.app.loadHistoricalData === 'function') {
+                    // Carregar dados históricos na interface principal
+                    window.app.loadHistoricalData(extraction);
+                } else if (window.mapBusinessFinderApp && typeof window.mapBusinessFinderApp.loadHistoricalData === 'function') {
+                    // Fallback para a instância direta do app
+                    window.mapBusinessFinderApp.loadHistoricalData(extraction);
+                } else {
+                    // Fallback para método alternativo
+                    this.loadHistoricalDataFallback(extraction);
+                }
+            } else {
+                this.showError('Extração não encontrada.');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar extração:', error);
+            this.showError('Erro ao carregar dados históricos.');
+        }
+    }
+
+    /**
+     * Método fallback para carregar dados históricos
+     * @param {Object} extraction - Dados da extração
+     */
+    loadHistoricalDataFallback(extraction) {
+        try {
+            // Atualizar dados no app principal
+            if (window.mapBusinessFinderApp) {
+                window.mapBusinessFinderApp.currentResults = extraction.results || [];
+                window.mapBusinessFinderApp.filteredResults = [...window.mapBusinessFinderApp.currentResults];
+                
+                // Atualizar input de busca
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.value = extraction.searchTerm || '';
+                }
+                
+                // Mostrar resultados
+                this.showHistoricalResultsFallback(extraction);
+                
+                this.showSuccess('Dados históricos carregados com sucesso!');
+            } else {
+                this.showError('Aplicação principal não encontrada.');
+            }
+        } catch (error) {
+            console.error('Erro no fallback de carregamento:', error);
+            this.showError('Erro ao carregar dados históricos.');
+        }
+    }
+
+    /**
+     * Mostra resultados históricos usando método fallback
+     * @param {Object} extraction - Dados da extração
+     */
+    showHistoricalResultsFallback(extraction) {
+        const app = window.mapBusinessFinderApp;
+        if (!app) return;
+
+        // Mostrar seção de resultados
+        const resultsSection = document.getElementById('resultsSection');
+        if (resultsSection) {
+            resultsSection.style.display = 'block';
+            resultsSection.classList.add('fade-in');
+        }
+
+        // Atualizar título
+        const resultsTitle = document.getElementById('resultsTitle');
+        if (resultsTitle) {
+            const searchTerm = extraction.searchTerm || 'Busca Histórica';
+            resultsTitle.textContent = `Resultados Históricos: "${searchTerm}"`;
+        }
+
+        // Atualizar resumo
+        const resultsSummary = document.getElementById('resultsSummary');
+        if (resultsSummary) {
+            const totalResults = extraction.totalResults || 0;
+            const avgRating = extraction.avgRating || 0;
+            const timestamp = new Date(extraction.timestamp).toLocaleString('pt-BR');
+            
+            resultsSummary.innerHTML = `
+                <span><strong>${totalResults}</strong> empresas encontradas</span>
+                <span>Avaliação média: <strong>${avgRating.toFixed(1) || 'N/A'}</strong></span>
+                <span>Data da busca: <strong>${timestamp}</strong></span>
+            `;
+        }
+
+        // Configurar filtros e exibir resultados
+        if (typeof app.setupTierFilters === 'function') {
+            app.setupTierFilters();
+        }
+        if (typeof app.displayResults === 'function') {
+            app.displayResults();
+        }
+
+        // Habilitar botão de exportação
+        const exportBtn = document.getElementById('exportResultsBtn');
+        if (exportBtn) {
+            exportBtn.disabled = false;
         }
     }
 
     async confirmAndDeleteExtraction(extractionId) {
         if (confirm('Tem certeza que deseja excluir este registro de histórico?')) {
-            await this.historyStorage.deleteExtraction(extractionId);
-            this.renderExtractionsList(); // Atualiza a lista após exclusão
+            try {
+                await this.historyStorage.deleteExtraction(extractionId);
+                this.renderExtractionsList(); // Atualiza a lista após exclusão
+                this.showSuccess('Registro excluído com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir extração:', error);
+                this.showError('Erro ao excluir registro.');
+            }
+        }
+    }
+
+    /**
+     * Mostra notificação de sucesso
+     * @param {string} message - Mensagem a ser exibida
+     */
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
+    /**
+     * Mostra notificação de erro
+     * @param {string} message - Mensagem a ser exibida
+     */
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+
+    /**
+     * Mostra notificação de informação
+     * @param {string} message - Mensagem a ser exibida
+     */
+    showInfo(message) {
+        this.showNotification(message, 'info');
+    }
+
+    /**
+     * Mostra notificação
+     * @param {string} message - Mensagem a ser exibida
+     * @param {string} type - Tipo da notificação (success, error, info)
+     */
+    showNotification(message, type = 'info') {
+        // Tentar usar o sistema de notificação do app principal
+        if (window.app && typeof window.app.showNotification === 'function') {
+            window.app.showNotification(message, type);
+        } else if (window.mapBusinessFinderApp && typeof window.mapBusinessFinderApp.showNotification === 'function') {
+            window.mapBusinessFinderApp.showNotification(message, type);
+        } else {
+            // Fallback para alert simples
+            alert(message);
         }
     }
 }

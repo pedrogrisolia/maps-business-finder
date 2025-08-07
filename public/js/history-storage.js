@@ -46,28 +46,40 @@ class HistoryStorage {
    * @returns {boolean} - True se os dados são válidos, false caso contrário.
    */
   validateExtractionData(data) {
-    // Temporariamente desativando validação de searchTerm e searchLocation para depuração
-    // if (!data.searchTerm || typeof data.searchTerm !== 'string') {
-    //   console.error('Validação falhou: searchTerm é obrigatório e deve ser uma string.');
-    //   return false;
-    // }
-    // if (!data.searchLocation || typeof data.searchLocation !== 'string') {
-    //   console.error('Validação falhou: searchLocation é obrigatório e deve ser uma string.');
-    //   return false;
-    // }
-    if (typeof data.totalResults !== 'number' || data.totalResults < 0) {
-      console.error('Validação falhou: totalResults é obrigatório e deve ser um número não negativo.');
-      return false;
-    }
-    if (typeof data.avgRating !== 'number' || data.avgRating < 0 || data.avgRating > 5) {
-      console.error('Validação falhou: avgRating é obrigatório e deve ser um número entre 0 e 5.');
-      return false;
-    }
-    if (!Array.isArray(data.results)) {
-      console.error('Validação falhou: results é obrigatório e deve ser um array.');
-      return false;
-    }
-    return true;
+      // Validação mais flexível para permitir dados históricos
+      if (!data.searchTerm || typeof data.searchTerm !== 'string') {
+          console.warn(
+              'Validação: searchTerm não fornecido, usando valor padrão.'
+          );
+          data.searchTerm = 'Busca sem termo';
+      }
+      if (!data.searchLocation || typeof data.searchLocation !== 'string') {
+          console.warn(
+              'Validação: searchLocation não fornecido, usando valor padrão.'
+          );
+          data.searchLocation = 'Localização Padrão';
+      }
+      if (typeof data.totalResults !== 'number' || data.totalResults < 0) {
+          console.error(
+              'Validação falhou: totalResults é obrigatório e deve ser um número não negativo.'
+          );
+          return false;
+      }
+      if (
+          typeof data.avgRating !== 'number' ||
+          data.avgRating < 0 ||
+          data.avgRating > 5
+      ) {
+          console.warn('Validação: avgRating inválido, usando valor padrão.');
+          data.avgRating = 0;
+      }
+      if (!Array.isArray(data.results)) {
+          console.error(
+              'Validação falhou: results é obrigatório e deve ser um array.'
+          );
+          return false;
+      }
+      return true;
   }
 
   /**

@@ -9,26 +9,26 @@ class MapBusinessFinderApp {
         this.startTime = null;
 
         this.historyStorage = null; // Instância de HistoryStorage
-        this.historyUI = null;     // Instância de HistoryUI
-        
+        this.historyUI = null; // Instância de HistoryUI
+
         // DOM elements
         this.elements = {};
-        
+
         // Configuration
         this.config = {
             maxLogEntries: 50,
             progressUpdateInterval: 1000,
             tierColors: {
-                'Premium': '#7c3aed',
-                'Excelente': '#059669',
+                Premium: '#7c3aed',
+                Excelente: '#059669',
                 'Muito Bom': '#0ea5e9',
-                'Bom': '#84cc16',
-                'Médio': '#f59e0b',
-                'Básico': '#6b7280',
+                Bom: '#84cc16',
+                Médio: '#f59e0b',
+                Básico: '#6b7280',
                 'Não Avaliado': '#9ca3af'
             }
         };
-        
+
         this.init();
     }
 
@@ -36,17 +36,23 @@ class MapBusinessFinderApp {
         try {
             this.historyStorage = new HistoryStorage(); // Inicializar HistoryStorage
             await this.historyStorage.initDB(); // GARANTIR inicialização do IndexedDB antes de qualquer outra operação
-            
+
             this.historyUI = new HistoryUI(this.historyStorage); // Inicializar HistoryUI
 
             this.bindDOMElements();
             this.setupEventListeners();
             this.initializeSocket();
             this.loadSearchHistory(); // Agora this.historyStorage.initDB() já foi chamado
+
+            // Expor funções para o HistoryUI
+            this.exposeFunctionsToHistoryUI();
+
             console.log('Maps Business Finder App initialized successfully');
         } catch (error) {
             console.error('Failed to initialize app:', error);
-            this.showError('Erro ao inicializar a aplicação. Recarregue a página.');
+            this.showError(
+                'Erro ao inicializar a aplicação. Recarregue a página.'
+            );
         }
     }
 
@@ -56,10 +62,10 @@ class MapBusinessFinderApp {
             searchForm: document.getElementById('searchForm'),
             searchInput: document.getElementById('searchInput'),
             searchBtn: document.getElementById('searchBtn'),
-            
+
             // Action buttons
             historyBtn: document.getElementById('historyBtn'), // Adicionar o botão de histórico
-            
+
             // Advanced options
             advancedToggle: document.getElementById('advancedToggle'),
             advancedContent: document.getElementById('advancedContent'),
@@ -68,10 +74,10 @@ class MapBusinessFinderApp {
             resultLimit: document.getElementById('resultLimit'),
             exportFormat: document.getElementById('exportFormat'),
             searchRadius: document.getElementById('searchRadius'),
-            
+
             // Suggestion chips
             suggestionChips: document.querySelectorAll('.suggestion-chip'),
-            
+
             // Progress elements
             progressSection: document.getElementById('progressSection'),
             progressTitle: document.getElementById('progressTitle'),
@@ -81,12 +87,12 @@ class MapBusinessFinderApp {
             businessCount: document.getElementById('businessCount'),
             currentStatus: document.getElementById('currentStatus'),
             stopBtn: document.getElementById('stopBtn'),
-            
+
             // Business discovery elements
             businessDiscovery: document.getElementById('businessDiscovery'),
             discoveryCount: document.getElementById('discoveryCount'),
             discoveryGrid: document.getElementById('discoveryGrid'),
-            
+
             // Results elements
             resultsSection: document.getElementById('resultsSection'),
             resultsTitle: document.getElementById('resultsTitle'),
@@ -97,11 +103,11 @@ class MapBusinessFinderApp {
             sortOrder: document.getElementById('sortOrder'),
             resultsTableBody: document.getElementById('resultsTableBody'),
             resultsPagination: document.getElementById('resultsPagination'),
-            
+
             // Action buttons
             exportResultsBtn: document.getElementById('exportResultsBtn'),
             importBtn: document.getElementById('importBtn'),
-            
+
             // Modal elements
             exportModal: document.getElementById('exportModal'),
             importModal: document.getElementById('importModal'),
@@ -110,7 +116,7 @@ class MapBusinessFinderApp {
             confirmExport: document.getElementById('confirmExport'),
             cancelImport: document.getElementById('cancelImport'),
             confirmImport: document.getElementById('confirmImport'),
-            
+
             // Import elements
             importFile: document.getElementById('importFile'),
             uploadZone: document.getElementById('uploadZone'),
@@ -123,33 +129,57 @@ class MapBusinessFinderApp {
 
     setupEventListeners() {
         // Search form
-        this.elements.searchForm.addEventListener('submit', this.handleSearch.bind(this));
-        
+        this.elements.searchForm.addEventListener(
+            'submit',
+            this.handleSearch.bind(this)
+        );
+
         // Advanced options toggle
-        this.elements.advancedToggle.addEventListener('click', this.toggleAdvancedOptions.bind(this));
-        
+        this.elements.advancedToggle.addEventListener(
+            'click',
+            this.toggleAdvancedOptions.bind(this)
+        );
+
         // Suggestion chips
-        this.elements.suggestionChips.forEach(chip => {
+        this.elements.suggestionChips.forEach((chip) => {
             chip.addEventListener('click', (e) => {
                 this.elements.searchInput.value = e.target.dataset.term;
                 this.elements.searchInput.focus();
             });
         });
-        
+
         // Progress controls
-        this.elements.stopBtn.addEventListener('click', this.stopCurrentSession.bind(this));
-        
+        this.elements.stopBtn.addEventListener(
+            'click',
+            this.stopCurrentSession.bind(this)
+        );
+
         // Results controls
-        this.elements.resultsSearch.addEventListener('input', this.debounce(this.filterResults.bind(this), 300));
-        this.elements.sortBy.addEventListener('change', this.sortResults.bind(this));
-        this.elements.sortOrder.addEventListener('click', this.toggleSortOrder.bind(this));
-        
+        this.elements.resultsSearch.addEventListener(
+            'input',
+            this.debounce(this.filterResults.bind(this), 300)
+        );
+        this.elements.sortBy.addEventListener(
+            'change',
+            this.sortResults.bind(this)
+        );
+        this.elements.sortOrder.addEventListener(
+            'click',
+            this.toggleSortOrder.bind(this)
+        );
+
         // Action buttons
-        this.elements.exportResultsBtn.addEventListener('click', this.showExportModal.bind(this));
-        this.elements.importBtn.addEventListener('click', this.showImportModal.bind(this));
-        
+        this.elements.exportResultsBtn.addEventListener(
+            'click',
+            this.showExportModal.bind(this)
+        );
+        this.elements.importBtn.addEventListener(
+            'click',
+            this.showImportModal.bind(this)
+        );
+
         // Modal controls
-        this.elements.modalClose.forEach(close => {
+        this.elements.modalClose.forEach((close) => {
             close.addEventListener('click', (e) => {
                 const modal = e.target.closest('.modal');
                 if (modal) {
@@ -157,27 +187,50 @@ class MapBusinessFinderApp {
                 }
             });
         });
-        
-        this.elements.cancelExport.addEventListener('click', () => this.hideModal(this.elements.exportModal));
-        this.elements.confirmExport.addEventListener('click', this.exportResults.bind(this));
-        this.elements.cancelImport.addEventListener('click', () => this.hideModal(this.elements.importModal));
-        this.elements.confirmImport.addEventListener('click', this.importResults.bind(this));
-        
+
+        this.elements.cancelExport.addEventListener('click', () =>
+            this.hideModal(this.elements.exportModal)
+        );
+        this.elements.confirmExport.addEventListener(
+            'click',
+            this.exportResults.bind(this)
+        );
+        this.elements.cancelImport.addEventListener('click', () =>
+            this.hideModal(this.elements.importModal)
+        );
+        this.elements.confirmImport.addEventListener(
+            'click',
+            this.importResults.bind(this)
+        );
+
         // Close modals on outside click
-        [this.elements.exportModal, this.elements.importModal].forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.hideModal(modal);
-                }
-            });
-        });
-        
+        [this.elements.exportModal, this.elements.importModal].forEach(
+            (modal) => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.hideModal(modal);
+                    }
+                });
+            }
+        );
+
         // Import file handling
-        this.elements.importFile.addEventListener('change', this.handleFileSelect.bind(this));
-        this.elements.uploadZone.addEventListener('click', () => this.elements.importFile.click());
-        this.elements.uploadZone.addEventListener('dragover', this.handleDragOver.bind(this));
-        this.elements.uploadZone.addEventListener('drop', this.handleFileDrop.bind(this));
-        
+        this.elements.importFile.addEventListener(
+            'change',
+            this.handleFileSelect.bind(this)
+        );
+        this.elements.uploadZone.addEventListener('click', () =>
+            this.elements.importFile.click()
+        );
+        this.elements.uploadZone.addEventListener(
+            'dragover',
+            this.handleDragOver.bind(this)
+        );
+        this.elements.uploadZone.addEventListener(
+            'drop',
+            this.handleFileDrop.bind(this)
+        );
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -194,24 +247,37 @@ class MapBusinessFinderApp {
     initializeSocket() {
         try {
             this.socket = io();
-            
+
             this.socket.on('connect', () => {
                 console.log('Connected to server');
             });
-            
+
             this.socket.on('disconnect', () => {
                 console.log('Disconnected from server');
             });
-            
+
             this.socket.on('progress', this.handleProgressUpdate.bind(this));
-            this.socket.on('session-started', this.handleSessionStarted.bind(this));
-            this.socket.on('session-completed', this.handleSessionCompleted.bind(this));
-            this.socket.on('session-failed', this.handleSessionFailed.bind(this));
-            this.socket.on('session-stopped', this.handleSessionStopped.bind(this));
-            
+            this.socket.on(
+                'session-started',
+                this.handleSessionStarted.bind(this)
+            );
+            this.socket.on(
+                'session-completed',
+                this.handleSessionCompleted.bind(this)
+            );
+            this.socket.on(
+                'session-failed',
+                this.handleSessionFailed.bind(this)
+            );
+            this.socket.on(
+                'session-stopped',
+                this.handleSessionStopped.bind(this)
+            );
         } catch (error) {
             console.error('Failed to initialize socket:', error);
-            this.showError('Erro ao conectar com o servidor. Verifique sua conexão.');
+            this.showError(
+                'Erro ao conectar com o servidor. Verifique sua conexão.'
+            );
         }
     }
 
@@ -219,11 +285,14 @@ class MapBusinessFinderApp {
         console.log('Session completed:', data);
         console.log('DEBUG - HistoryStorage instance:', this.historyStorage);
         console.log('DEBUG - Current session ID:', this.currentSession);
-        console.log('DEBUG - Search input value:', this.elements.searchInput?.value);
-        
+        console.log(
+            'DEBUG - Search input value:',
+            this.elements.searchInput?.value
+        );
+
         this.setSearching(false);
         this.stopProgressTimer();
-        
+
         // Update final progress
         this.elements.progressFill.style.width = '100%';
         this.elements.progressText.textContent = '100%';
@@ -233,31 +302,43 @@ class MapBusinessFinderApp {
             this.showResults(data.result);
             this.hideProgress();
 
+            // Atualizar referência no window.app
+            this.updateWindowAppReference();
+
             // Salvar no IndexedDB via HistoryStorage
             try {
                 console.log('DEBUG - Tentando salvar no histórico...');
-                
+
                 if (!this.historyStorage) {
                     throw new Error('HistoryStorage not initialized');
                 }
 
                 const extractionData = {
-                    id: data.sessionId || this.currentSession || Date.now().toString(),
+                    id:
+                        data.sessionId ||
+                        this.currentSession ||
+                        Date.now().toString(),
                     timestamp: new Date().getTime(),
-                    searchTerm: this.elements.searchInput?.value || data.searchTerm || 'Busca sem termo', // Usar o termo de busca do input do frontend
+                    searchTerm:
+                        this.elements.searchInput?.value ||
+                        data.searchTerm ||
+                        'Busca sem termo', // Usar o termo de busca do input do frontend
                     searchLocation: 'Localização Padrão', // Simular uma localização para fins de teste no frontend
                     totalResults: this.currentResults.length,
                     avgRating: data.result.results.summary?.avgRating || null,
                     results: this.currentResults
                 };
-                
+
                 console.log('DEBUG - Dados da extração:', extractionData);
-                
+
                 await this.historyStorage.saveExtraction(extractionData);
                 console.log('DEBUG - Extração salva com sucesso!');
                 this.showSuccess('Resultados salvos no histórico!');
             } catch (error) {
-                console.error('DEBUG - Erro ao salvar extração no histórico:', error);
+                console.error(
+                    'DEBUG - Erro ao salvar extração no histórico:',
+                    error
+                );
                 console.error('DEBUG - Error stack:', error.stack);
                 this.showError('Erro ao salvar resultados no histórico.');
             }
@@ -268,7 +349,7 @@ class MapBusinessFinderApp {
 
     async handleSearch(e) {
         e.preventDefault();
-        
+
         const searchTerm = this.elements.searchInput.value.trim();
         if (!searchTerm) {
             this.showError('Por favor, digite um termo de pesquisa.');
@@ -277,9 +358,15 @@ class MapBusinessFinderApp {
 
         // Get search options
         const options = {
-            minRating: this.elements.minRating.value ? parseFloat(this.elements.minRating.value) : null,
-            minReviews: this.elements.minReviews.value ? parseInt(this.elements.minReviews.value) : null,
-            limit: this.elements.resultLimit.value ? parseInt(this.elements.resultLimit.value) : null,
+            minRating: this.elements.minRating.value
+                ? parseFloat(this.elements.minRating.value)
+                : null,
+            minReviews: this.elements.minReviews.value
+                ? parseInt(this.elements.minReviews.value)
+                : null,
+            limit: this.elements.resultLimit.value
+                ? parseInt(this.elements.resultLimit.value)
+                : null,
             exportFormats: this.elements.exportFormat.value.split(','),
             searchRadius: parseInt(this.elements.searchRadius.value) || 10
         };
@@ -289,7 +376,7 @@ class MapBusinessFinderApp {
         if (selectedAddresses && selectedAddresses.length > 0) {
             // Use manual coordinates when addresses are selected
             options.coordinates = selectedAddresses;
-            options.referenceCoordinates = selectedAddresses.map(addr => ({
+            options.referenceCoordinates = selectedAddresses.map((addr) => ({
                 lat: addr.lat,
                 lng: addr.lng
             }));
@@ -300,13 +387,16 @@ class MapBusinessFinderApp {
             options.useAutoLocation = true;
         }
 
-        console.log('DEBUG - Sending search term and options to backend:', { searchTerm, options }); // Log the sent data
+        console.log('DEBUG - Sending search term and options to backend:', {
+            searchTerm,
+            options
+        }); // Log the sent data
 
         try {
             this.setSearching(true);
             this.hideResults();
             this.clearProgress();
-            
+
             // Send search request
             const response = await fetch('/api/scrape', {
                 method: 'POST',
@@ -320,7 +410,7 @@ class MapBusinessFinderApp {
             });
 
             const result = await response.json();
-            
+
             if (!result.success) {
                 throw new Error(result.error || 'Erro desconhecido');
             }
@@ -328,14 +418,13 @@ class MapBusinessFinderApp {
             // Store session and subscribe to updates
             this.currentSession = result.sessionId;
             this.socket.emit('subscribe-to-session', this.currentSession);
-            
+
             // Show progress section
             this.showProgress();
             this.startProgressTimer();
-            
+
             // Save to search history
             this.saveToSearchHistory(searchTerm, options);
-            
         } catch (error) {
             console.error('Search failed:', error);
             this.showError(`Erro ao iniciar pesquisa: ${error.message}`);
@@ -346,8 +435,9 @@ class MapBusinessFinderApp {
     setSearching(searching) {
         this.elements.searchBtn.disabled = searching;
         const btnText = this.elements.searchBtn.querySelector('.btn-text');
-        const btnLoading = this.elements.searchBtn.querySelector('.btn-loading');
-        
+        const btnLoading =
+            this.elements.searchBtn.querySelector('.btn-loading');
+
         if (searching) {
             btnText.style.display = 'none';
             btnLoading.style.display = 'inline-block';
@@ -360,7 +450,7 @@ class MapBusinessFinderApp {
     toggleAdvancedOptions() {
         const content = this.elements.advancedContent;
         const toggle = this.elements.advancedToggle;
-        
+
         if (content.classList.contains('active')) {
             content.classList.remove('active');
             toggle.classList.remove('active');
@@ -408,64 +498,75 @@ class MapBusinessFinderApp {
     updateElapsedTime() {
         if (this.startTime) {
             const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-            this.elements.elapsedTime.textContent = this.formatDuration(elapsed);
+            this.elements.elapsedTime.textContent =
+                this.formatDuration(elapsed);
         }
     }
 
     formatDuration(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
-        return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+        return minutes > 0
+            ? `${minutes}m ${remainingSeconds}s`
+            : `${remainingSeconds}s`;
     }
 
     handleProgressUpdate(data) {
         console.log('Progress update:', data);
-        
+
         // Update progress bar
         if (data.progress !== null && data.progress !== undefined) {
             this.elements.progressFill.style.width = `${data.progress}%`;
             this.elements.progressText.textContent = `${Math.round(data.progress)}%`;
         }
-        
+
         // User-friendly status messages
         const userStatusMessages = {
-            'session_started': 'Iniciando pesquisa...',
-            'initializing_browser': 'Preparando navegador...',
-            'navigating': 'Acessando Google Maps...',
-            'extracting_initial_data': 'Buscando primeiras empresas...',
-            'smart_scrolling': 'Explorando mais resultados...',
-            'scrolling': 'Descobrindo novas empresas...',
-            'extracting_final_data': 'Coletando informações finais...',
-            'processing_results': 'Organizando resultados...',
-            'exporting_results': 'Preparando arquivos de exportação...',
-            'completed': 'Pesquisa concluída com sucesso!',
-            'error': 'Ocorreu um erro durante a pesquisa'
+            session_started: 'Iniciando pesquisa...',
+            initializing_browser: 'Preparando navegador...',
+            navigating: 'Acessando Google Maps...',
+            extracting_initial_data: 'Buscando primeiras empresas...',
+            smart_scrolling: 'Explorando mais resultados...',
+            scrolling: 'Descobrindo novas empresas...',
+            extracting_final_data: 'Coletando informações finais...',
+            processing_results: 'Organizando resultados...',
+            exporting_results: 'Preparando arquivos de exportação...',
+            completed: 'Pesquisa concluída com sucesso!',
+            error: 'Ocorreu um erro durante a pesquisa'
         };
-        
+
         let userMessage = userStatusMessages[data.stage] || data.stage;
-        
+
         // Add location information if available
         if (data.data && data.data.location) {
             const locationInfo = data.data.location;
-            const locationProgress = data.data.locationIndex && data.data.totalLocations ? ` [${data.data.locationIndex}/${data.data.totalLocations}]` : '';
+            const locationProgress =
+                data.data.locationIndex && data.data.totalLocations
+                    ? ` [${data.data.locationIndex}/${data.data.totalLocations}]`
+                    : '';
             userMessage += ` - ${locationInfo}${locationProgress}`;
         }
-        
+
         this.elements.currentStatus.textContent = userMessage;
-        
+
         // Update counters and handle business discovery
         if (data.data) {
             if (data.data.totalExtracted) {
-                this.elements.businessCount.textContent = data.data.totalExtracted;
+                this.elements.businessCount.textContent =
+                    data.data.totalExtracted;
                 this.elements.discoveryCount.textContent = `${data.data.totalExtracted} encontrada${data.data.totalExtracted > 1 ? 's' : ''}`;
-                
+
                 // Update discovery count with location information
                 let discoveryText = `${data.data.totalExtracted} encontradas`;
-                
-                if (data.data.location && data.data.locationIndex && data.data.totalLocations) {
+
+                if (
+                    data.data.location &&
+                    data.data.locationIndex &&
+                    data.data.totalLocations
+                ) {
                     discoveryText += ` - ${data.data.location} [${data.data.locationIndex}/${data.data.totalLocations}]`;
                 }
-                
+
                 this.elements.discoveryCount.textContent = discoveryText;
             }
         }
@@ -475,8 +576,12 @@ class MapBusinessFinderApp {
         console.log('Session started:', data);
         const searchTerm = data.searchTerm;
         const coordinates = data.options?.coordinates;
-        
-        if (coordinates && Array.isArray(coordinates) && coordinates.length > 0) {
+
+        if (
+            coordinates &&
+            Array.isArray(coordinates) &&
+            coordinates.length > 0
+        ) {
             if (coordinates.length === 1) {
                 this.elements.progressTitle.textContent = `Pesquisando: ${searchTerm} em ${coordinates[0].address}`;
             } else {
@@ -488,7 +593,6 @@ class MapBusinessFinderApp {
             this.elements.progressTitle.textContent = `Pesquisando: ${searchTerm}`;
         }
     }
-
 
     handleSessionFailed(data) {
         console.error('Session failed:', data);
@@ -507,16 +611,18 @@ class MapBusinessFinderApp {
 
     async stopCurrentSession() {
         if (!this.currentSession) return;
-        
+
         try {
-            const response = await fetch(`/api/sessions/${this.currentSession}`, {
-                method: 'DELETE'
-            });
-            
+            const response = await fetch(
+                `/api/sessions/${this.currentSession}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
             if (!response.ok) {
                 throw new Error('Falha ao parar a sessão');
             }
-            
         } catch (error) {
             console.error('Failed to stop session:', error);
             this.showError('Erro ao parar a pesquisa.');
@@ -526,35 +632,41 @@ class MapBusinessFinderApp {
     showResults(resultData) {
         this.elements.resultsSection.style.display = 'block';
         this.elements.resultsSection.classList.add('fade-in');
-        
+
         // Update results title and summary
         const searchTerm = resultData.searchTerm || 'Pesquisa';
         const totalResults = resultData.results.total || 0;
-        
+
         this.elements.resultsTitle.textContent = `Resultados para "${searchTerm}"`;
-        
+
         // Generate summary
         const summary = resultData.results.summary || {};
-        
+
         // Count unique locations
-        const locations = [...new Set(this.currentResults.map(b => b.searchLocation).filter(Boolean))];
-        const locationInfo = locations.length > 1 ? 
-            `<span>Localizações: <strong>${locations.length}</strong></span>` : '';
-        
+        const locations = [
+            ...new Set(
+                this.currentResults.map((b) => b.searchLocation).filter(Boolean)
+            )
+        ];
+        const locationInfo =
+            locations.length > 1
+                ? `<span>Localizações: <strong>${locations.length}</strong></span>`
+                : '';
+
         this.elements.resultsSummary.innerHTML = `
             <span><strong>${totalResults}</strong> empresas encontradas</span>
             <span>Avaliação média: <strong>${summary.avgRating || 'N/A'}</strong></span>
             <span>Duração: <strong>${resultData.performance?.durationFormatted || 'N/A'}</strong></span>
             ${locationInfo}
         `;
-        
+
         // Setup tier filters
         this.setupTierFilters();
-        
+
         // Initial filter and display
         this.filteredResults = [...this.currentResults];
         this.displayResults();
-        
+
         // Enable export button
         this.elements.exportResultsBtn.disabled = false;
     }
@@ -568,18 +680,18 @@ class MapBusinessFinderApp {
         // Count businesses per tier and location
         const tierCounts = {};
         const locationCounts = {};
-        
-        this.currentResults.forEach(business => {
+
+        this.currentResults.forEach((business) => {
             const tier = business.tier || 'Não Avaliado';
             const location = business.searchLocation || 'Default';
-            
+
             tierCounts[tier] = (tierCounts[tier] || 0) + 1;
             locationCounts[location] = (locationCounts[location] || 0) + 1;
         });
-        
+
         // Create filter buttons
         this.elements.tierFilters.innerHTML = '';
-        
+
         // Add "All" filter
         const allBtn = document.createElement('button');
         allBtn.className = 'tier-filter active';
@@ -587,7 +699,7 @@ class MapBusinessFinderApp {
         allBtn.textContent = `Todos (${this.currentResults.length})`;
         allBtn.addEventListener('click', this.handleTierFilter.bind(this));
         this.elements.tierFilters.appendChild(allBtn);
-        
+
         // Add tier-specific filters
         Object.entries(tierCounts).forEach(([tier, count]) => {
             const btn = document.createElement('button');
@@ -597,21 +709,24 @@ class MapBusinessFinderApp {
             btn.addEventListener('click', this.handleTierFilter.bind(this));
             this.elements.tierFilters.appendChild(btn);
         });
-        
+
         // Add location filters if multiple locations
         if (Object.keys(locationCounts).length > 1) {
             // Add separator
             const separator = document.createElement('div');
             separator.className = 'filter-separator';
             this.elements.tierFilters.appendChild(separator);
-            
+
             // Add location filters
             Object.entries(locationCounts).forEach(([location, count]) => {
                 const btn = document.createElement('button');
                 btn.className = 'tier-filter location-filter';
                 btn.dataset.location = location;
                 btn.textContent = `${location} (${count})`;
-                btn.addEventListener('click', this.handleLocationFilter.bind(this));
+                btn.addEventListener(
+                    'click',
+                    this.handleLocationFilter.bind(this)
+                );
                 this.elements.tierFilters.appendChild(btn);
             });
         }
@@ -619,51 +734,65 @@ class MapBusinessFinderApp {
 
     handleTierFilter(e) {
         // Update active filter
-        this.elements.tierFilters.querySelectorAll('.tier-filter').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        this.elements.tierFilters
+            .querySelectorAll('.tier-filter')
+            .forEach((btn) => {
+                btn.classList.remove('active');
+            });
         e.target.classList.add('active');
-        
+
         // Filter results
         this.filterResults();
     }
 
     handleLocationFilter(e) {
         // Update active filter
-        this.elements.tierFilters.querySelectorAll('.location-filter').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        this.elements.tierFilters
+            .querySelectorAll('.location-filter')
+            .forEach((btn) => {
+                btn.classList.remove('active');
+            });
         e.target.classList.add('active');
-        
+
         // Filter results
         this.filterResults();
     }
 
     filterResults() {
         let filtered = [...this.currentResults];
-        
+
         // Apply tier filter
-        const activeTierFilter = this.elements.tierFilters.querySelector('.tier-filter.active:not(.location-filter)');
+        const activeTierFilter = this.elements.tierFilters.querySelector(
+            '.tier-filter.active:not(.location-filter)'
+        );
         if (activeTierFilter && activeTierFilter.dataset.tier !== 'all') {
             const selectedTier = activeTierFilter.dataset.tier;
-            filtered = filtered.filter(business => business.tier === selectedTier);
+            filtered = filtered.filter(
+                (business) => business.tier === selectedTier
+            );
         }
-        
+
         // Apply location filter
-        const activeLocationFilter = this.elements.tierFilters.querySelector('.location-filter.active');
+        const activeLocationFilter = this.elements.tierFilters.querySelector(
+            '.location-filter.active'
+        );
         if (activeLocationFilter) {
             const selectedLocation = activeLocationFilter.dataset.location;
-            filtered = filtered.filter(business => business.searchLocation === selectedLocation);
+            filtered = filtered.filter(
+                (business) => business.searchLocation === selectedLocation
+            );
         }
-        
+
         // Apply search filter
-        const searchTerm = this.elements.resultsSearch.value.toLowerCase().trim();
+        const searchTerm = this.elements.resultsSearch.value
+            .toLowerCase()
+            .trim();
         if (searchTerm) {
-            filtered = filtered.filter(business => 
+            filtered = filtered.filter((business) =>
                 business.name.toLowerCase().includes(searchTerm)
             );
         }
-        
+
         this.filteredResults = filtered;
         this.sortResults();
     }
@@ -671,18 +800,22 @@ class MapBusinessFinderApp {
     sortResults() {
         const sortBy = this.elements.sortBy.value;
         const isAscending = this.elements.sortOrder.dataset.order === 'asc';
-        
+
         this.filteredResults.sort((a, b) => {
             let valueA, valueB;
-            
+
             switch (sortBy) {
                 case 'compositeScore':
                     valueA = a.compositeScore || 0;
                     valueB = b.compositeScore || 0;
                     break;
                 case 'rating':
-                    valueA = parseFloat(a.rating?.toString().replace(',', '.') || 0);
-                    valueB = parseFloat(b.rating?.toString().replace(',', '.') || 0);
+                    valueA = parseFloat(
+                        a.rating?.toString().replace(',', '.') || 0
+                    );
+                    valueB = parseFloat(
+                        b.rating?.toString().replace(',', '.') || 0
+                    );
                     break;
                 case 'reviewCount':
                     valueA = this.extractReviewCount(a);
@@ -691,24 +824,26 @@ class MapBusinessFinderApp {
                 case 'name':
                     valueA = a.name.toLowerCase();
                     valueB = b.name.toLowerCase();
-                    return isAscending ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+                    return isAscending
+                        ? valueA.localeCompare(valueB)
+                        : valueB.localeCompare(valueA);
                 default:
                     return 0;
             }
-            
+
             if (isAscending) {
                 return valueA - valueB;
             } else {
                 return valueB - valueA;
             }
         });
-        
+
         this.displayResults();
     }
 
     extractReviewCount(business) {
         if (business.reviewCount) return business.reviewCount;
-        
+
         const sources = [business.reviewsText, business.reviews];
         for (const source of sources) {
             if (source) {
@@ -722,19 +857,20 @@ class MapBusinessFinderApp {
     toggleSortOrder() {
         const currentOrder = this.elements.sortOrder.dataset.order;
         const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-        
+
         this.elements.sortOrder.dataset.order = newOrder;
-        this.elements.sortOrder.innerHTML = newOrder === 'asc' 
-            ? '<i class="fas fa-sort-amount-up"></i>'
-            : '<i class="fas fa-sort-amount-down"></i>';
-            
+        this.elements.sortOrder.innerHTML =
+            newOrder === 'asc'
+                ? '<i class="fas fa-sort-amount-up"></i>'
+                : '<i class="fas fa-sort-amount-down"></i>';
+
         this.sortResults();
     }
 
     displayResults() {
         const tbody = this.elements.resultsTableBody;
         tbody.innerHTML = '';
-        
+
         if (this.filteredResults.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -747,7 +883,7 @@ class MapBusinessFinderApp {
             `;
             return;
         }
-        
+
         this.filteredResults.forEach((business, index) => {
             const row = this.createBusinessRow(business, index + 1);
             tbody.appendChild(row);
@@ -756,31 +892,40 @@ class MapBusinessFinderApp {
 
     createBusinessRow(business, rank) {
         const row = document.createElement('tr');
-        
+
         // Extract review count for display
         const reviewCount = this.extractReviewCount(business);
-        const rating = parseFloat(business.rating?.toString().replace(',', '.') || 0);
-        
+        const rating = parseFloat(
+            business.rating?.toString().replace(',', '.') || 0
+        );
+
         // Generate star rating display
-        const starRating = rating > 0 ? '★'.repeat(Math.floor(rating)) + (rating % 1 >= 0.5 ? '☆' : '') : '';
-        
+        const starRating =
+            rating > 0
+                ? '★'.repeat(Math.floor(rating)) +
+                  (rating % 1 >= 0.5 ? '☆' : '')
+                : '';
+
         // Generate quality indicators
         const indicators = business.qualityIndicators || [];
-        const indicatorsHtml = indicators.map(indicator => {
-            const className = indicator.toLowerCase().replace(/\s+/g, '-');
-            return `<span class="quality-indicator ${className}">${indicator}</span>`;
-        }).join('');
-        
+        const indicatorsHtml = indicators
+            .map((indicator) => {
+                const className = indicator.toLowerCase().replace(/\s+/g, '-');
+                return `<span class="quality-indicator ${className}">${indicator}</span>`;
+            })
+            .join('');
+
         // Create business name with link if available
-        const businessNameHtml = business.link ? 
-            `<a href="${business.link}" target="_blank" class="business-link">${this.escapeHtml(business.name)}</a>` :
-            `<div class="business-name">${this.escapeHtml(business.name)}</div>`;
-        
+        const businessNameHtml = business.link
+            ? `<a href="${business.link}" target="_blank" class="business-link">${this.escapeHtml(business.name)}</a>`
+            : `<div class="business-name">${this.escapeHtml(business.name)}</div>`;
+
         // Adicionar informação de localização se disponível
-        const locationInfo = business.searchLocation ? 
-            `<div class="search-location">
+        const locationInfo = business.searchLocation
+            ? `<div class="search-location">
                 <i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(business.searchLocation)}
-            </div>` : '';
+            </div>`
+            : '';
 
         row.innerHTML = `
             <td class="rank-col">
@@ -801,8 +946,12 @@ class MapBusinessFinderApp {
             </td>
             <td class="distance-col">
                 <span class="distance-value">
-                    ${business.distance !== null && business.distance !== undefined ?
-                        `${business.distance}km` : 'N/A'}
+                    ${
+                        business.distance !== null &&
+                        business.distance !== undefined
+                            ? `${business.distance}km`
+                            : 'N/A'
+                    }
                 </span>
             </td>
             <td class="score-col">
@@ -822,7 +971,7 @@ class MapBusinessFinderApp {
                 </div>
             </td>
         `;
-        
+
         return row;
     }
 
@@ -870,7 +1019,7 @@ class MapBusinessFinderApp {
         e.preventDefault();
         e.stopPropagation();
         this.elements.uploadZone.classList.remove('drag-over');
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             this.elements.importFile.files = files;
@@ -882,21 +1031,25 @@ class MapBusinessFinderApp {
         try {
             const fileType = file.name.toLowerCase();
             let data;
-            
+
             if (fileType.endsWith('.json')) {
                 data = await this.parseJSONFile(file);
             } else if (fileType.endsWith('.csv')) {
                 data = await this.parseCSVFile(file);
             } else {
-                throw new Error('Formato de arquivo não suportado. Use JSON ou CSV.');
+                throw new Error(
+                    'Formato de arquivo não suportado. Use JSON ou CSV.'
+                );
             }
-            
+
             if (data && data.length > 0) {
-                this.showImportPreview(data, fileType.endsWith('.json') ? 'JSON' : 'CSV');
+                this.showImportPreview(
+                    data,
+                    fileType.endsWith('.json') ? 'JSON' : 'CSV'
+                );
             } else {
                 throw new Error('Nenhum dado válido encontrado no arquivo.');
             }
-            
         } catch (error) {
             console.error('Error processing file:', error);
             this.showError(`Erro ao processar arquivo: ${error.message}`);
@@ -910,19 +1063,25 @@ class MapBusinessFinderApp {
             reader.onload = (e) => {
                 try {
                     const jsonData = JSON.parse(e.target.result);
-                    
+
                     // Handle different JSON structures
                     let businesses = [];
                     if (Array.isArray(jsonData)) {
                         businesses = jsonData;
-                    } else if (jsonData.results && Array.isArray(jsonData.results)) {
+                    } else if (
+                        jsonData.results &&
+                        Array.isArray(jsonData.results)
+                    ) {
                         businesses = jsonData.results;
-                    } else if (jsonData.businesses && Array.isArray(jsonData.businesses)) {
+                    } else if (
+                        jsonData.businesses &&
+                        Array.isArray(jsonData.businesses)
+                    ) {
                         businesses = jsonData.businesses;
                     } else {
                         throw new Error('Estrutura JSON não reconhecida');
                     }
-                    
+
                     resolve(businesses);
                 } catch (error) {
                     reject(new Error('Arquivo JSON inválido'));
@@ -940,27 +1099,29 @@ class MapBusinessFinderApp {
                 try {
                     const csvText = e.target.result;
                     const lines = csvText.split('\n');
-                    
+
                     if (lines.length < 2) {
                         throw new Error('Arquivo CSV muito pequeno');
                     }
-                    
+
                     // Parse headers
                     const headers = this.parseCSVLine(lines[0]);
                     const businesses = [];
-                    
+
                     // Parse data rows
                     for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (line) {
                             const values = this.parseCSVLine(line);
                             const business = {};
-                            
+
                             headers.forEach((header, index) => {
                                 if (values[index] !== undefined) {
-                                    const cleanHeader = header.toLowerCase().trim();
+                                    const cleanHeader = header
+                                        .toLowerCase()
+                                        .trim();
                                     const value = values[index].trim();
-                                    
+
                                     // Map CSV headers to business properties
                                     switch (cleanHeader) {
                                         case 'nome':
@@ -969,12 +1130,14 @@ class MapBusinessFinderApp {
                                             break;
                                         case 'avaliação':
                                         case 'rating':
-                                            business.rating = parseFloat(value) || 0;
+                                            business.rating =
+                                                parseFloat(value) || 0;
                                             break;
                                         case 'comentários':
                                         case 'reviews':
                                         case 'reviewcount':
-                                            business.reviewCount = parseInt(value) || 0;
+                                            business.reviewCount =
+                                                parseInt(value) || 0;
                                             break;
                                         case 'endereço':
                                         case 'address':
@@ -983,7 +1146,8 @@ class MapBusinessFinderApp {
                                         case 'pontuação':
                                         case 'score':
                                         case 'compositescore':
-                                            business.compositeScore = parseFloat(value) || 0;
+                                            business.compositeScore =
+                                                parseFloat(value) || 0;
                                             break;
                                         case 'categoria':
                                         case 'tier':
@@ -998,13 +1162,13 @@ class MapBusinessFinderApp {
                                     }
                                 }
                             });
-                            
+
                             if (business.name) {
                                 businesses.push(business);
                             }
                         }
                     }
-                    
+
                     resolve(businesses);
                 } catch (error) {
                     reject(new Error('Erro ao processar arquivo CSV'));
@@ -1019,10 +1183,10 @@ class MapBusinessFinderApp {
         const result = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let i = 0; i < line.length; i++) {
             const char = line[i];
-            
+
             if (char === '"') {
                 inQuotes = !inQuotes;
             } else if (char === ',' && !inQuotes) {
@@ -1032,22 +1196,22 @@ class MapBusinessFinderApp {
                 current += char;
             }
         }
-        
+
         result.push(current);
-        return result.map(item => item.replace(/^"|"$/g, ''));
+        return result.map((item) => item.replace(/^"|"$/g, ''));
     }
 
     showImportPreview(data, format) {
         this.elements.previewCount.textContent = `${data.length} empresas encontradas`;
         this.elements.previewFormat.textContent = `Formato: ${format}`;
-        
+
         // Show preview table
         const tbody = this.elements.previewTableBody;
         tbody.innerHTML = '';
-        
+
         // Show first 5 items as preview
         const previewData = data.slice(0, 5);
-        previewData.forEach(business => {
+        previewData.forEach((business) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${this.escapeHtml(business.name || 'N/A')}</td>
@@ -1057,16 +1221,16 @@ class MapBusinessFinderApp {
             `;
             tbody.appendChild(row);
         });
-        
+
         if (data.length > 5) {
             const moreRow = document.createElement('tr');
             moreRow.innerHTML = `<td colspan="4" class="text-center">... e mais ${data.length - 5} empresas</td>`;
             tbody.appendChild(moreRow);
         }
-        
+
         this.elements.importPreview.style.display = 'block';
         this.elements.confirmImport.disabled = false;
-        
+
         // Store data for import
         this.importData = data;
     }
@@ -1076,47 +1240,53 @@ class MapBusinessFinderApp {
             this.showError('Nenhum dado para importar.');
             return;
         }
-        
+
         // Set imported data as current results
         this.currentResults = [...this.importData];
         this.filteredResults = [...this.importData];
-        
+
+        // Atualizar referência no window.app
+        this.updateWindowAppReference();
+
         // Show results
         this.showImportedResults();
-        
+
         // Hide modal
         this.hideImportModal();
-        
-        this.showSuccess(`Importados ${this.importData.length} resultados com sucesso!`);
+
+        this.showSuccess(
+            `Importados ${this.importData.length} resultados com sucesso!`
+        );
     }
 
     showImportedResults() {
         this.elements.resultsSection.style.display = 'block';
         this.elements.resultsSection.classList.add('fade-in');
-        
+
         // Update results title
         this.elements.resultsTitle.textContent = 'Resultados Importados';
-        
+
         // Generate summary
         const totalResults = this.currentResults.length;
-        const avgRating = this.currentResults.reduce((sum, b) => sum + (parseFloat(b.rating) || 0), 0) / totalResults;
-        
+        const avgRating =
+            this.currentResults.reduce(
+                (sum, b) => sum + (parseFloat(b.rating) || 0),
+                0
+            ) / totalResults;
+
         this.elements.resultsSummary.innerHTML = `
             <span><strong>${totalResults}</strong> empresas importadas</span>
             <span>Avaliação média: <strong>${avgRating.toFixed(1) || 'N/A'}</strong></span>
         `;
-        
+
         // Setup tier filters
         this.setupTierFilters();
-        
+
         // Display results
         this.displayResults();
-        
+
         // Enable export button
         this.elements.exportResultsBtn.disabled = false;
-        // Expor a função displayResults para que o HistoryUI possa chamá-la
-        window.app.displayResults = this.displayResults.bind(this);
-        window.app.currentResults = this.currentResults;
     }
 
     // Modal management
@@ -1134,25 +1304,34 @@ class MapBusinessFinderApp {
             this.showError('Nenhum resultado para exportar.');
             return;
         }
-        
+
         this.elements.exportModal.classList.add('active');
     }
 
     async exportResults() {
         try {
-            const selectedFormat = document.querySelector('input[name="exportFormat"]:checked').value;
-            const includeMetadata = document.getElementById('includeMetadata').checked;
-            const includeScoreBreakdown = document.getElementById('includeScoreBreakdown').checked;
-            const includeOnlyFiltered = document.getElementById('includeOnlyFiltered').checked;
-            
+            const selectedFormat = document.querySelector(
+                'input[name="exportFormat"]:checked'
+            ).value;
+            const includeMetadata =
+                document.getElementById('includeMetadata').checked;
+            const includeScoreBreakdown = document.getElementById(
+                'includeScoreBreakdown'
+            ).checked;
+            const includeOnlyFiltered = document.getElementById(
+                'includeOnlyFiltered'
+            ).checked;
+
             // Determine which results to export
-            const resultsToExport = includeOnlyFiltered ? this.filteredResults : this.currentResults;
-            
+            const resultsToExport = includeOnlyFiltered
+                ? this.filteredResults
+                : this.currentResults;
+
             if (resultsToExport.length === 0) {
                 this.showError('Nenhum resultado para exportar.');
                 return;
             }
-            
+
             // Prepare export data
             const exportData = {
                 results: resultsToExport,
@@ -1162,27 +1341,34 @@ class MapBusinessFinderApp {
                     includeScoreBreakdown
                 }
             };
-            
+
             // Generate filename
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-            const searchTerm = this.elements.searchInput.value.trim().replace(/[^a-zA-Z0-9]/g, '_');
+            const timestamp = new Date()
+                .toISOString()
+                .slice(0, 19)
+                .replace(/[:.]/g, '-');
+            const searchTerm = this.elements.searchInput.value
+                .trim()
+                .replace(/[^a-zA-Z0-9]/g, '_');
             const filename = `${searchTerm}_${timestamp}.${selectedFormat}`;
-            
+
             // Create and download file
             let content, mimeType;
-            
+
             if (selectedFormat === 'json') {
                 content = JSON.stringify(exportData, null, 2);
                 mimeType = 'application/json';
             } else {
-                content = this.convertToCSV(resultsToExport, includeScoreBreakdown);
+                content = this.convertToCSV(
+                    resultsToExport,
+                    includeScoreBreakdown
+                );
                 mimeType = 'text/csv';
             }
-            
+
             this.downloadFile(content, filename, mimeType);
             this.hideModal(this.elements.exportModal);
             this.showSuccess('Resultados exportados com sucesso!');
-            
         } catch (error) {
             console.error('Export failed:', error);
             this.showError('Erro ao exportar resultados.');
@@ -1190,14 +1376,22 @@ class MapBusinessFinderApp {
     }
 
     convertToCSV(results, includeScoreBreakdown) {
-        const headers = ['Rank', 'Nome', 'Avaliação', 'Número de Avaliações', 'Pontuação Composta', 'Categoria', 'Localização de Busca'];
-        
+        const headers = [
+            'Rank',
+            'Nome',
+            'Avaliação',
+            'Número de Avaliações',
+            'Pontuação Composta',
+            'Categoria',
+            'Localização de Busca'
+        ];
+
         if (includeScoreBreakdown) {
             headers.push('Detalhamento da Pontuação');
         }
-        
+
         const rows = [headers];
-        
+
         results.forEach((business, index) => {
             const row = [
                 index + 1,
@@ -1208,30 +1402,36 @@ class MapBusinessFinderApp {
                 business.tier || 'Unrated',
                 business.searchLocation || 'N/A'
             ];
-            
+
             if (includeScoreBreakdown && business.scoreBreakdown) {
                 const breakdown = business.scoreBreakdown;
-                row.push(`Rating: ${breakdown.rating}, Reviews: ${breakdown.reviewCount}, Log Factor: ${breakdown.logFactor?.toFixed(2)}`);
+                row.push(
+                    `Rating: ${breakdown.rating}, Reviews: ${breakdown.reviewCount}, Log Factor: ${breakdown.logFactor?.toFixed(2)}`
+                );
             }
-            
+
             rows.push(row);
         });
-        
-        return rows.map(row => 
-            row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-        ).join('\n');
+
+        return rows
+            .map((row) =>
+                row
+                    .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+                    .join(',')
+            )
+            .join('\n');
     }
 
     downloadFile(content, filename, mimeType) {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
-        
+
         // Cleanup
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -1273,21 +1473,23 @@ class MapBusinessFinderApp {
                 <button class="notification-close">&times;</button>
             </div>
         `;
-        
+
         // Add to page
         document.body.appendChild(notification);
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
             }
         }, 5000);
-        
+
         // Manual close
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.remove();
-        });
+        notification
+            .querySelector('.notification-close')
+            .addEventListener('click', () => {
+                notification.remove();
+            });
     }
 
     getNotificationIcon(type) {
@@ -1309,13 +1511,15 @@ class MapBusinessFinderApp {
                 options,
                 timestamp: new Date().toISOString()
             };
-            
+
             history.unshift(entry);
-            
+
             // Keep only last 10 searches
             const trimmedHistory = history.slice(0, 10);
-            localStorage.setItem('mapsBusinessFinder_searchHistory', JSON.stringify(trimmedHistory));
-            
+            localStorage.setItem(
+                'mapsBusinessFinder_searchHistory',
+                JSON.stringify(trimmedHistory)
+            );
         } catch (error) {
             console.warn('Failed to save search history:', error);
         }
@@ -1323,7 +1527,9 @@ class MapBusinessFinderApp {
 
     getSearchHistory() {
         try {
-            const history = localStorage.getItem('mapsBusinessFinder_searchHistory');
+            const history = localStorage.getItem(
+                'mapsBusinessFinder_searchHistory'
+            );
             return history ? JSON.parse(history) : [];
         } catch (error) {
             console.warn('Failed to load search history:', error);
@@ -1335,6 +1541,102 @@ class MapBusinessFinderApp {
         // This could be used to populate a search history dropdown
         const history = this.getSearchHistory();
         console.log('Loaded search history:', history);
+    }
+
+    /**
+     * Expõe funções necessárias para o HistoryUI
+     */
+    exposeFunctionsToHistoryUI() {
+        window.app = {
+            displayResults: this.displayResults.bind(this),
+            showResults: this.showResults.bind(this),
+            showImportedResults: this.showImportedResults.bind(this),
+            loadHistoricalData: this.loadHistoricalData.bind(this),
+            setupTierFilters: this.setupTierFilters.bind(this),
+            updateWindowAppReference: this.updateWindowAppReference.bind(this),
+            currentResults: this.currentResults,
+            filteredResults: this.filteredResults,
+            elements: this.elements,
+            showSuccess: this.showSuccess.bind(this),
+            showError: this.showError.bind(this),
+            showInfo: this.showInfo.bind(this),
+            showNotification: this.showNotification.bind(this)
+        };
+    }
+
+    /**
+     * Carrega dados históricos na interface principal
+     * @param {Object} extractionData - Dados da extração histórica
+     */
+    loadHistoricalData(extractionData) {
+        try {
+            // Atualizar dados atuais
+            this.currentResults = extractionData.results || [];
+            this.filteredResults = [...this.currentResults];
+
+            // Atualizar input de busca com o termo histórico
+            if (this.elements.searchInput) {
+                this.elements.searchInput.value =
+                    extractionData.searchTerm || '';
+            }
+
+            // Atualizar referência no window.app
+            this.updateWindowAppReference();
+
+            // Mostrar resultados na interface
+            this.showHistoricalResults(extractionData);
+
+            this.showSuccess('Dados históricos carregados com sucesso!');
+        } catch (error) {
+            console.error('Erro ao carregar dados históricos:', error);
+            this.showError('Erro ao carregar dados históricos.');
+        }
+    }
+
+    /**
+     * Atualiza a referência do window.app com dados atuais
+     */
+    updateWindowAppReference() {
+        if (window.app) {
+            window.app.currentResults = this.currentResults;
+            window.app.filteredResults = this.filteredResults;
+        }
+    }
+
+    /**
+     * Mostra resultados históricos na interface
+     * @param {Object} extractionData - Dados da extração histórica
+     */
+    showHistoricalResults(extractionData) {
+        this.elements.resultsSection.style.display = 'block';
+        this.elements.resultsSection.classList.add('fade-in');
+
+        // Atualizar título dos resultados
+        const searchTerm = extractionData.searchTerm || 'Busca Histórica';
+        const totalResults = extractionData.totalResults || 0;
+
+        this.elements.resultsTitle.textContent = `Resultados Históricos: "${searchTerm}"`;
+
+        // Gerar resumo
+        const avgRating = extractionData.avgRating || 0;
+        const timestamp = new Date(extractionData.timestamp).toLocaleString(
+            'pt-BR'
+        );
+
+        this.elements.resultsSummary.innerHTML = `
+            <span><strong>${totalResults}</strong> empresas encontradas</span>
+            <span>Avaliação média: <strong>${avgRating.toFixed(1) || 'N/A'}</strong></span>
+            <span>Data da busca: <strong>${timestamp}</strong></span>
+        `;
+
+        // Configurar filtros por tier
+        this.setupTierFilters();
+
+        // Exibir resultados
+        this.displayResults();
+
+        // Habilitar botão de exportação
+        this.elements.exportResultsBtn.disabled = false;
     }
 }
 
