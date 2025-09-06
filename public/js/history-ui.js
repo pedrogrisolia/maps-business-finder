@@ -104,7 +104,7 @@ class HistoryUI {
                     </div>
                     <div class="history-item-actions">
                         <button class="btn btn-sm btn-primary view-details-btn" data-id="${extraction.id}">
-                            <i class="fas fa-eye"></i> Ver Detalhes
+                            <i class="fas fa-eye"></i> Carregar Resultados
                         </button>
                         <button class="btn btn-sm btn-danger delete-extraction-btn" data-id="${extraction.id}">
                             <i class="fas fa-trash"></i> Excluir

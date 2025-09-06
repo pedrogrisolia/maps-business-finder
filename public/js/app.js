@@ -827,6 +827,10 @@ class MapBusinessFinderApp {
                     return isAscending
                         ? valueA.localeCompare(valueB)
                         : valueB.localeCompare(valueA);
+                 case 'distance':
+                    valueA = a.distance ?? Infinity;
+                    valueB = b.distance ?? Infinity;
+                    break;
                 default:
                     return 0;
             }
