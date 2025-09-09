@@ -313,6 +313,22 @@ class MapBusinessFinderApp {
                     throw new Error('HistoryStorage not initialized');
                 }
 
+                // Obter localização real baseada nos endereços selecionados
+                const selectedAddresses =
+                    window.getSelectedAddressCoordinates();
+                let searchLocation =
+                    'Busca automática (sem localização específica)';
+
+                if (selectedAddresses && selectedAddresses.length > 0) {
+                    if (selectedAddresses.length === 1) {
+                        searchLocation = selectedAddresses[0].address;
+                    } else {
+                        searchLocation = selectedAddresses
+                            .map((addressObj) => addressObj.address)
+                            .join(', ');
+                    }
+                }
+
                 const extractionData = {
                     id:
                         data.sessionId ||
@@ -323,7 +339,7 @@ class MapBusinessFinderApp {
                         this.elements.searchInput?.value ||
                         data.searchTerm ||
                         'Busca sem termo', // Usar o termo de busca do input do frontend
-                    searchLocation: 'Localização Padrão', // Simular uma localização para fins de teste no frontend
+                    searchLocation: searchLocation,
                     totalResults: this.currentResults.length,
                     avgRating: data.result.results.summary?.avgRating || null,
                     results: this.currentResults
