@@ -104,6 +104,7 @@ class Exporters {
                 { id: 'compositeScore', title: 'Pontuação' },
                 { id: 'tier', title: 'Categoria' },
                 { id: 'link', title: 'Link' },
+                { id: 'phone', title: 'Telefone' },
                 { id: 'address', title: 'Endereço' },
                 { id: 'extractedAt', title: 'Extraído em' },
                 { id: 'source', title: 'Fonte' }
@@ -125,6 +126,7 @@ class Exporters {
                 compositeScore: this.calculateCompositeScore(business),
                 tier: business.tier || '',
                 link: business.link || '',
+                phone: business.phone || '',
                 address: business.address || '',
                 extractedAt: business.extractedAt || new Date().toISOString(),
                 source: business.source || 'Google Maps'

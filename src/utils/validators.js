@@ -92,6 +92,18 @@ class Validators {
             }
         }
 
+        // Phone validation (optional)
+        if (business.phone !== undefined && business.phone !== null) {
+            if (typeof business.phone === 'string') {
+                const digits = business.phone.replace(/\D/g, '');
+                if (digits.length > 0 && digits.length < 8) {
+                    warnings.push('Phone number seems too short');
+                }
+            } else {
+                warnings.push('Phone number is not a valid string');
+            }
+        }
+
         // Validate that business has rating or reviews
         const hasRating = business.rating && business.rating > 0;
         const hasReviews = business.reviewCount && business.reviewCount > 0;
@@ -166,6 +178,14 @@ class Validators {
         // Sanitize link
         if (business.link && typeof business.link === 'string') {
             sanitized.link = business.link.trim();
+        }
+
+        // Sanitize phone
+        if (business.phone && typeof business.phone === 'string') {
+            const phone = business.phone.trim();
+            if (phone.length > 0) {
+                sanitized.phone = phone;
+            }
         }
 
         // Sanitize address

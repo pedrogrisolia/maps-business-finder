@@ -894,7 +894,7 @@ class MapBusinessFinderApp {
         if (this.filteredResults.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="10" class="text-center">
                         <p style="padding: 2rem; color: var(--gray-500);">
                             Nenhum resultado encontrado com os filtros aplicados.
                         </p>
@@ -918,6 +918,9 @@ class MapBusinessFinderApp {
         const rating = parseFloat(
             business.rating?.toString().replace(',', '.') || 0
         );
+        const phone = business.phone ? business.phone.trim() : '';
+        const phoneDigits = phone ? phone.replace(/\D/g, '') : '';
+        const phoneDisplay = phone || 'Não disponível';
 
         // Generate star rating display
         const starRating =
@@ -982,6 +985,11 @@ class MapBusinessFinderApp {
                     ${business.tier || 'Não Avaliado'}
                 </span>
             </td>
+            <td class="phone-col">
+                <span class="phone-copy business-address" data-phone="${this.escapeHtml(phone)}" ${phoneDigits ? 'role="button" tabindex="0" style="cursor: pointer;"' : ''} title="${phoneDigits ? 'Clique para copiar' : 'Telefone não disponível'}">
+                    ${this.escapeHtml(phoneDisplay)}
+                </span>
+            </td>
             <td class="address-col">
                 <div class="business-address">${this.escapeHtml(business.address || 'Não disponível')}</div>
             </td>
@@ -991,6 +999,33 @@ class MapBusinessFinderApp {
                 </div>
             </td>
         `;
+
+        const phoneElement = row.querySelector('.phone-copy');
+        if (phoneElement) {
+            const rawPhone = phoneElement.dataset.phone || '';
+            const digitsOnly = rawPhone.replace(/\D/g, '');
+
+            if (digitsOnly) {
+                const handleCopy = async () => {
+                    const copied = await this.copyToClipboard(digitsOnly);
+                    if (copied) {
+                        this.showSuccess(
+                            'Telefone copiado para a área de transferência.'
+                        );
+                    } else {
+                        this.showError('Não foi possível copiar o telefone.');
+                    }
+                };
+
+                phoneElement.addEventListener('click', handleCopy);
+                phoneElement.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCopy();
+                    }
+                });
+            }
+        }
 
         return row;
     }
@@ -1162,6 +1197,10 @@ class MapBusinessFinderApp {
                                         case 'endereço':
                                         case 'address':
                                             business.address = value;
+                                            break;
+                                        case 'telefone':
+                                        case 'phone':
+                                            business.phone = value;
                                             break;
                                         case 'pontuação':
                                         case 'score':
@@ -1401,6 +1440,7 @@ class MapBusinessFinderApp {
             'Nome',
             'Avaliação',
             'Número de Avaliações',
+            'Telefone',
             'Pontuação Composta',
             'Categoria',
             'Localização de Busca'
@@ -1418,6 +1458,7 @@ class MapBusinessFinderApp {
                 business.name,
                 business.rating || '',
                 this.extractReviewCount(business),
+                business.phone || '',
                 business.compositeScore?.toFixed(2) || '0.00',
                 business.tier || 'Unrated',
                 business.searchLocation || 'N/A'
@@ -1455,6 +1496,34 @@ class MapBusinessFinderApp {
         // Cleanup
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    async copyToClipboard(text) {
+        if (!text) return false;
+
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '0';
+
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            const success = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            return success;
+        } catch (error) {
+            console.error('Clipboard copy failed:', error);
+            return false;
+        }
     }
 
     // Utility functions

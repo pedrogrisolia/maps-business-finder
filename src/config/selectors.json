@@ -1,53 +1,53 @@
 {
   "businessData": {
-    "names": {
-      "primary": ".qBF1Pd.fontHeadlineSmall",
-      "fallbacks": [
-        ".qBF1Pd",
-        "h3[class*='qBF1Pd']",
-        "[data-value='business_name']"
-      ],
-      "xpath": ".//a[@aria-label]/@aria-label"
-    },
-    "ratings": {
-      "primary": ".MW4etd",
-      "fallbacks": [
-        "[aria-label*='estrelas']",
-        "span[aria-label*='star']",
-        ".fontBodyMedium[aria-label*='star']"
-      ],
-      "xpath": "string(.//span[@role='img']/span[1])"
-    },
-    "reviews": {
-      "primary": "span.UY7F9",
-      "fallbacks": [
-        "span[aria-label*='comentário']",
-        "span[aria-label*='review']",
-        ".fontBodySmall"
-      ],
-      "xpath": "string(.//span[@role='img']/span[last()])"
-    },
-    "links": {
-      "primary": "a[href*='/maps/place/']",
-      "fallbacks": [
-        "a[href*='maps']",
-        "[data-value='business_link']"
-      ],
-      "xpath": "./a[@aria-label]/@href"
-    },
-    "addresses": {
-      "primary": "span[class*='fontBodyMedium']",
-      "fallbacks": [
-        "span[aria-label*='endereço']",
-        "span[aria-label*='address']",
-        "div[aria-label*='localização']",
-        "span:contains('Rua'), span:contains('Av'), span:contains('Avenida')"
-      ],
-      "xpath": "string((.//div[count(.//span[contains(text(), '·')]) > 0 and not(.//span[contains(text(), 'Abre')]) and not(.//span[contains(text(), 'Fechado')]) and not(.//span[contains(text(), 'Fecha')])]/span)[last()])"
-    },
-    "baseContainer": {
-      "xpath": "//a[@aria-label and starts-with(@href, 'http')]/ancestor::div[1]"
-    }
+      "names": {
+          "primary": ".qBF1Pd.fontHeadlineSmall",
+          "fallbacks": [
+              ".qBF1Pd",
+              "h3[class*='qBF1Pd']",
+              "[data-value='business_name']"
+          ],
+          "xpath": ".//a[@aria-label]/@aria-label"
+      },
+      "ratings": {
+          "primary": ".MW4etd",
+          "fallbacks": [
+              "[aria-label*='estrelas']",
+              "span[aria-label*='star']",
+              ".fontBodyMedium[aria-label*='star']"
+          ],
+          "xpath": "string(.//span[@role='img']/span[1])"
+      },
+      "reviews": {
+          "primary": "span.UY7F9",
+          "fallbacks": [
+              "span[aria-label*='comentário']",
+              "span[aria-label*='review']",
+              ".fontBodySmall"
+          ],
+          "xpath": "string(.//span[@role='img']/span[last()])"
+      },
+      "links": {
+          "primary": "a[href*='/maps/place/']",
+          "fallbacks": ["a[href*='maps']", "[data-value='business_link']"],
+          "xpath": "./a[@aria-label]/@href"
+      },
+      "addresses": {
+          "primary": "span[class*='fontBodyMedium']",
+          "fallbacks": [
+              "span[aria-label*='endereço']",
+              "span[aria-label*='address']",
+              "div[aria-label*='localização']",
+              "span:contains('Rua'), span:contains('Av'), span:contains('Avenida')"
+          ],
+          "xpath": "string((.//div[count(.//span[contains(text(), '·')]) > 0 and not(.//span[contains(text(), 'Abre')]) and not(.//span[contains(text(), 'Fechado')]) and not(.//span[contains(text(), 'Fecha')])]/span)[last()])"
+      },
+      "phones": {
+          "xpath": "string(.//span[contains(text(), '(') and contains(text(), '-') and string-length(text()) < 20])"
+      },
+      "baseContainer": {
+          "xpath": "//a[@aria-label and starts-with(@href, 'http')]/ancestor::div[1]"
+      }
   },
   "navigation": {
     "scrollContainer": {

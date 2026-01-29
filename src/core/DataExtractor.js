@@ -144,6 +144,17 @@ class DataExtractor {
                             }
                         }
 
+                        // 6. Extract phone
+                        const phoneXPath = "string(.//span[contains(text(), '(') and contains(text(), '-') and string-length(text()) < 20])";
+                        const phoneResult = document.evaluate(
+                            phoneXPath,
+                            baseElement,
+                            null,
+                            XPathResult.STRING_TYPE,
+                            null
+                        );
+                        const phone = phoneResult.stringValue?.trim();
+
                         // Only include businesses that have rating or reviews
                         const hasRating = rating && rating.trim().length > 0;
                         const hasReviews = reviews && reviews.trim().length > 0;
@@ -154,7 +165,8 @@ class DataExtractor {
                                 rating: rating || '',
                                 reviews: reviews || '',
                                 link: link || '',
-                                address: address || 'Não disponível'
+                                address: address || 'Não disponível',
+                                phone: phone || ''
                             });
                         }
 
